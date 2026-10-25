@@ -3,3 +3,9 @@ server:
 
 client:
 	gcc ./src/http/client.c -o ./build/http/client &&  ./build/http/client
+
+send_can:
+	gcc ./src/can/send_can.c ./src/can/utils.c -o ./build/can/send_can && ./build/can/send_can
+
+read_can:
+	gcc ./src/can/read_can.c ./src/can/utils.c -o ./build/can/read_can && ./build/can/read_can
