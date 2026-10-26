@@ -9,3 +9,6 @@ send_can:
 
 read_can:
 	gcc ./src/can/read_can.c ./src/can/utils.c -o ./build/can/read_can && ./build/can/read_can
+
+codec:
+	gcc ./src/can/codec/codec.c -o ./build/can/codec/codec && ./build/can/codec/codec

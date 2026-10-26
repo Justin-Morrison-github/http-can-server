@@ -1,0 +1,10 @@
+NODES>
+	MotorController: 0x010
+	TemperatureSensor:     0x456
+<NODES
+
+MESSAGES>
+	0x010: MotorControlStatus
+		speed_ms:           16 | -
+		charge_percent:     8  | +
+<MESSAGES
