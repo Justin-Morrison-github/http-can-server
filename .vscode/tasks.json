@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build codec for debugging",
+            "type": "shell",
+            "command": "mkdir -p \"${workspaceFolder}/build/can/codec\" && gcc -g -O0 -fno-omit-frame-pointer \"${workspaceFolder}/src/can/codec/codec.c\" -o \"${workspaceFolder}/build/can/codec/codec\"",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$gcc"
+        }
+    ]
+}
