@@ -80,6 +80,33 @@ int main(int argc, char *argv[]) {
     buffer[bytes_read] = '\0';
     printf("Server recieved %zd bytes: %s\n", bytes_read, buffer);
 
+    const char *body = "{\"status\":\"ok\"}";
+
+    char response[256];
+
+    int len = snprintf(
+        response,
+        sizeof(response),
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: %zu\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "%s",
+        strlen(body),
+        body
+    );
+
+    ssize_t bytes_sent = send(accept_fd, response, len, 0);
+    if (bytes_sent < 0)     {
+        perror("send error");
+        exit(8);
+    } else if (bytes_sent != len) {
+        fprintf(stderr, "send couldn't fit all msg bytes in one send: %ld bytes left", len - bytes_sent);
+    }
+
+    printf("Server sent %zd bytes: %s\n", bytes_sent, response);
+
     freeaddrinfo(res); // free the linked list
     close(sock_fd);
     close(accept_fd);
