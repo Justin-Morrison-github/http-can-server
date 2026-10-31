@@ -352,7 +352,7 @@ int main(void) {
         snprintf(line_buf, LINE_BUF_SIZE, "#define %s_ID 0x%03X\n", upper_case_name, curr->header.id);
         fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
 
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_DLC %ld\n", upper_case_name, curr->size_bytes);
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_LEN %ld\n", upper_case_name, curr->size_bytes);
         fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
 
         snprintf(line_buf, LINE_BUF_SIZE, "#define %s_INTERVAL_MS %d\n", upper_case_name, curr->header.interval_ms);
