@@ -46,6 +46,63 @@ int open_can_socket(char *can_interface)
     printf("CAN socket bound to vcan0\n");
     return can_sock_fd;
 }
+char* sock_result_str(SockResult_t result) {
+    switch (result) {
+        case SOCK_OK:
+            return "OK";
+        case SOCK_WRITE_FAIL:
+            return "WRITE_FAIL";
+        case SOCK_READ_FAIL:
+            return "READ_FAIL";
+        case SOCK_FRAME_INVALID:
+            return "FRAME_INVALID";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+SockResult_t write_to_socket(int fd, can_frame_t* frame) {
+    if (frame == NULL) {
+        fprintf(stderr, "cannot write null frame to socket");
+        return SOCK_FRAME_INVALID;
+    }
+    
+    ssize_t n_bytes = write(fd, frame, sizeof(can_frame_t));
+    if (n_bytes < 0) {
+        perror("write");
+        close(fd);
+        return SOCK_WRITE_FAIL;
+    } else if (n_bytes != sizeof(can_frame_t)) {
+        fprintf(stderr, "%ld of %ld bytes written", n_bytes, sizeof(can_frame_t));
+        return SOCK_WRITE_FAIL;
+    } else {
+        printf("Sent 0x%03X, %u bytes\n", frame->can_id, frame->len);
+    }
+
+    return SOCK_OK;
+}
+
+SockResult_t read_from_socket(int fd, can_frame_t* frame) {
+    if (frame == NULL) {
+        fprintf(stderr, "cannot write null frame to socket");
+        return SOCK_FRAME_INVALID;
+    }
+    
+    ssize_t n_bytes = read(fd, frame, sizeof(can_frame_t));
+    if (n_bytes < 0) {
+        perror("write");
+        close(fd);
+        return SOCK_READ_FAIL;
+    } else if (n_bytes == 0) {
+        fprintf(stderr, "read EOF");
+        return SOCK_READ_FAIL;
+    } else if (n_bytes < sizeof(can_frame_t)) {
+        fprintf(stderr, "read: incomplete CAN frame\n");
+        return SOCK_READ_FAIL;
+    }  
+
+    return SOCK_OK;
+}
 
 uint64_t millis() {
     struct timespec ts;

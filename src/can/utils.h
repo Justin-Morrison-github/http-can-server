@@ -31,4 +31,15 @@ can_ack_t can_to_ack(can_frame_t frame);
 int open_can_socket(char *can_interface);
 uint64_t millis();
 char* str_bool(bool b);
+
+typedef enum SockResult {
+    SOCK_OK,
+    SOCK_WRITE_FAIL,
+    SOCK_READ_FAIL,
+    SOCK_FRAME_INVALID
+} SockResult_t;
+char* sock_result_str(SockResult_t result);
+SockResult_t write_to_socket(int fd, can_frame_t* frame);
+SockResult_t read_from_socket(int fd, can_frame_t* frame);
+
 #endif
