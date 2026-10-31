@@ -18,5 +18,5 @@ typedef struct power_status {
 } power_status_t;
 can_frame_t power_status_to_can(const power_status_t* status);
 power_status_t can_to_power_status(const can_frame_t* frame);
-void print(power_status_t status);
+void print_power_status(power_status_t status);
 #endif

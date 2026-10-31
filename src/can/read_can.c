@@ -37,8 +37,25 @@ int main(void) {
         }  
         
         if (frame_in.can_id == POWER_STATUS_ID) {
+            printf("Recived: 0x%03X\n", frame_in.can_id);
+
             power_status_t power_status = can_to_power_status(&frame_in);
-            print(power_status);
+
+            can_ack_t power_status_ack = create_ack(POWER_STATUS_ID, ACK_ERR);
+            print_can_ack(power_status_ack);
+            can_frame_t frame = ack_to_can(power_status_ack);
+
+            ssize_t n_bytes = write(can_sock_fd, &frame, sizeof(frame));
+            if (n_bytes < 0) {
+                perror("write");
+                close(can_sock_fd);
+                exit(2);
+            } else if (n_bytes != sizeof(can_frame_t)) {
+                // Non-fatal for now
+                fprintf(stderr, "%ld of %ld bytes written", n_bytes, sizeof(can_frame_t));
+            } else {
+                printf("Sent ACK for: 0x%03X\n", power_status_ack.can_id);
+            }
         }
     }
     

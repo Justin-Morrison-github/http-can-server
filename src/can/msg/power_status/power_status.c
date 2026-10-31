@@ -14,7 +14,7 @@ can_frame_t power_status_to_can(const power_status_t* status) {
         return frame;
     }
     frame.can_id = POWER_STATUS_ID;
-    frame.can_dlc = POWER_STATUS_DLC;
+    frame.len = POWER_STATUS_DLC;
     memcpy(&frame.data[0], &status->percent_charge, sizeof(status->percent_charge));
     memcpy(&frame.data[1], &status->power_on, sizeof(status->power_on));
 
@@ -23,7 +23,7 @@ can_frame_t power_status_to_can(const power_status_t* status) {
 
 power_status_t can_to_power_status(const can_frame_t* frame) {
     power_status_t status;
-    if (frame == NULL || frame->can_dlc != POWER_STATUS_DLC) {
+    if (frame == NULL || frame->len != POWER_STATUS_DLC) {
         status.valid = false;
         return status;
     }
@@ -35,7 +35,7 @@ power_status_t can_to_power_status(const can_frame_t* frame) {
     return status;
 }
 
-void print(power_status_t status) {
+void print_power_status(power_status_t status) {
     printf("power_status: %s\n", status.valid ? "OK" : "ERR");
     printf("  percent_charge: %d\n", status.percent_charge);
     printf("  power_on: %s\n", str_bool(status.power_on));
