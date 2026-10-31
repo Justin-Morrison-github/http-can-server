@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "../../utils.h"
 
-#define INVALID_ID 0
 #define POWER_STATUS_ID 0x444
 #define POWER_STATUS_DLC 2
 #define POWER_STATUS_INTERVAL_MS 1000
