@@ -12,6 +12,8 @@ typedef struct signal {
     char name[MAX_SIGNAL_NAME];
     size_t num_bits;
     bool sign;
+    struct signal* next;
+    struct signal* tail;
 } signal_t;
 
 typedef struct message_header {
@@ -23,10 +25,18 @@ typedef struct message {
     message_header_t header;
     signal_t* signals;
     size_t num_signals; 
+    struct message* next;
+    struct message* tail;
 } message_t;
 
-
-
+void* malloc_or_fail(size_t size){
+    void* p = malloc(size);
+    if (p == NULL) {
+        perror("malloc");
+        exit(1);
+    }
+    return p;
+}
 
 void strip(char* str) {
     if (str == NULL || strlen(str) == 0) {
@@ -127,7 +137,7 @@ message_header_t parse_message_header_line(char* line) {
     return msg_header;
 }
 
-signal_t parse_signal_line(char* line) {
+signal_t* parse_signal_line(char* line) {
     // Line is already stripped of end whitespace
     // Just need to split on ":", and strip whitespace again
     // Left of : is Name, right of : is ID 
@@ -145,17 +155,20 @@ signal_t parse_signal_line(char* line) {
     strip(num_bits_str);
     strip(sign_str);
 
-    signal_t signal;
-    signal.num_bits = strtol(num_bits_str, NULL, 10);
+    signal_t* signal_p = (signal_t*) malloc_or_fail(sizeof(signal_t));
+
+    signal_p->num_bits = strtol(num_bits_str, NULL, 10);
     if (strcmp(sign_str, "-") == 0) {
-        signal.sign = true;
+        signal_p->sign = true;
     } else {
-        signal.sign = false;
+        signal_p->sign = false;
     }
     
-    memcpy(signal.name, name, strlen(name) + 1);
-    return signal;
+    memcpy(signal_p->name, name, strlen(name) + 1);
+    return signal_p;
 }
+
+
 
 int main(void) {
 
@@ -166,6 +179,11 @@ int main(void) {
     }
 
     char line_buf[1000];
+
+    message_t* msg_dummy = (message_t*) malloc_or_fail(sizeof(message_t));
+
+    msg_dummy->next = NULL;
+    msg_dummy->tail = msg_dummy;
 
     while (fgets(line_buf, 100, fp) != NULL) {
         strip(line_buf);
@@ -185,9 +203,13 @@ int main(void) {
         char signal_id[MAX_SIGNAL_NAME];
 
         if(is_single_message_header(line_buf)) {
-            message_header_t msg_header = parse_message_header_line(line_buf);
-            printf("%s:0x%03X\n", msg_header.name, msg_header.id);
-            
+            message_t* message_p = (message_t*) malloc_or_fail(sizeof(message_t));
+            message_p->num_signals = 0;
+            message_p->header = parse_message_header_line(line_buf);
+            message_p->signals = (signal_t*) malloc_or_fail(sizeof(signal_t));
+            message_p->signals->next = NULL;
+            message_p->signals->tail = message_p->signals;
+
             // Parse inner signal lines
             while (fgets(line_buf, 100, fp) != NULL) {
                 strip(line_buf);
@@ -195,13 +217,57 @@ int main(void) {
                 if (is_single_message_footer(line_buf)) {
                     break;
                 }
+                message_p->num_signals++;
 
-                signal_t signal = parse_signal_line(line_buf);
-                printf("  %s | %ld | %s\n", signal.name, signal.num_bits, signal.sign ? "-" : "+");
+                signal_t* signal = parse_signal_line(line_buf);
+                
+                // Set new node to point to NULL (end of list)
+                signal->next = NULL;
+
+                // Set tail to point at new node
+                message_p->signals->tail->next = signal;
+
+                // Update tail itself to point at new node
+                message_p->signals->tail = signal;
             }
+
+            // Set new node to point to NULL (end of list)
+            message_p->next = NULL;
+
+            // Set tail to point at new node
+            msg_dummy->tail->next = message_p;
+
+            // Update tail itself to point at new node
+            msg_dummy->tail = message_p;
         }
     }
     
+    //Prints all messages and signals
+    for (message_t* curr = msg_dummy->next; curr != NULL; curr = curr->next) {
+        printf("%s : 0x%03X\n", curr->header.name, curr->header.id);
+
+        for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
+            printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");
+        }
+    }
+    
+
+    // Free messages that were malloc'd
+    message_t *next_msg = NULL;
+    for (message_t* curr_msg = msg_dummy->next; curr_msg != NULL; curr_msg=next_msg) {
+        next_msg = curr_msg->next;
+
+        signal_t *next_sig = NULL;
+        for (signal_t* curr_sig = curr_msg->signals; curr_sig != NULL; curr_sig=next_sig) {
+            next_sig = curr_sig->next;
+            free(curr_sig);
+        }
+
+        free(curr_msg);
+    }
+
+    free(msg_dummy);
+
     fclose(fp);
     return 0;
 }
