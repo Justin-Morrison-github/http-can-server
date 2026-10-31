@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "utils.h"
+#include "msg/power_status/power_status.h"
 
 int main(void) {
     int can_sock_fd = open_can_socket("vcan0");
@@ -18,7 +19,7 @@ int main(void) {
     }
 
     // Read CAN frames
-    struct can_frame frame_in;
+    can_frame_t frame_in;
 
     while (1)
     {
@@ -29,11 +30,15 @@ int main(void) {
             exit(1);
         } else if (n_bytes == 0) {
             fprintf(stderr, "read EOF");
+            exit(1);
         } else if (n_bytes < sizeof(frame_in)) {
             fprintf(stderr, "read: incomplete CAN frame\n");
             exit(1);
-        } else {
-            printf("Read CAN ID 0x%03X, %u bytes\n", frame_in.can_id, frame_in.len);
+        }  
+        
+        if (frame_in.can_id == POWER_STATUS_ID) {
+            power_status_t power_status = can_to_power_status(&frame_in);
+            print(power_status);
         }
     }
     

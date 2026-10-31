@@ -8,6 +8,7 @@
 #include <net/if.h>         // For ifreq
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "utils.h"
 
@@ -45,4 +46,14 @@ int open_can_socket(char *can_interface)
     }
     printf("CAN socket bound to vcan0\n");
     return can_sock_fd;
+}
+
+uint64_t millis() {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ((uint64_t)ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+}
+
+char* str_bool(bool b) {
+    return b ? "True" : "False";
 }
