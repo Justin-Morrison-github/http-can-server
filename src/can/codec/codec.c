@@ -219,6 +219,41 @@ void to_upper_str(char* input, char* output){
     output[i] = '\0';
 }
 
+char* type_from_num_bits_and_sign(size_t num_bits, bool is_signed) {
+    if (num_bits < 1 || num_bits > 64) {
+        fprintf(stderr, "invalid num_bits for type");
+        return "?";
+    }
+    
+    if (num_bits == 1) {
+        return "bool";
+    }
+
+    if (is_signed) {
+        if (num_bits <= 8) {
+            return "int8_t";
+        } else if (num_bits <= 16) {
+            return "int16_t";
+        } else if (num_bits <= 32) {
+            return "int32_t";
+        } else if (num_bits <= 64) {
+            return "int64_t";
+        }
+    } else {
+        if (num_bits <= 8) {
+            return "uint8_t";
+        } else if (num_bits <= 16) {
+            return "uint16_t";
+        } else if (num_bits <= 32) {
+            return "uint32_t";
+        } else if (num_bits <= 64) {
+            return "uint64_t";
+        }
+    }
+
+    return "?";
+}
+
 int main(void) {
     FILE* fp = fopen("./src/can/codec/test.can", "r");
     if (fp == NULL) {
@@ -345,6 +380,9 @@ int main(void) {
         snprintf(line_buf, LINE_BUF_SIZE, "#include <stdint.h>\n");
         fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
 
+        snprintf(line_buf, LINE_BUF_SIZE, "#include <stdbool.h>\n");
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
         snprintf(line_buf, LINE_BUF_SIZE, "#include \"../../utils.h\"\n");
         fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
 
@@ -360,18 +398,35 @@ int main(void) {
 
         snprintf(line_buf, LINE_BUF_SIZE, "#define %s_NAME \"%s\"\n", upper_case_name, curr->header.name);
         fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-        
-        // #define POWER_STATUS_ID 0x444
-        // #define POWER_STATUS_DLC 2
-        // #define POWER_STATUS_INTERVAL_MS 1000
-        // #define POWER_STATUS_NAME "PowerStatus"
+
+        snprintf(line_buf, LINE_BUF_SIZE, "typedef struct %s {\n", snake_case_name);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        char* type;
+        for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
+            char* type = type_from_num_bits_and_sign(curr_sig->num_bits, curr_sig->sign);
+            
+            snprintf(line_buf, LINE_BUF_SIZE, "\t%s %s;\n", type, curr_sig->name);
+            fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+            
+            // printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");
+        }
+
+        snprintf(line_buf, LINE_BUF_SIZE, "} %s_t; \n", snake_case_name);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+
+        // typedef struct power_status {
+        //     uint8_t percent_charge;
+        //     bool power_on;
+        //     bool valid;
+        // } power_status_t;
+        // can_frame_t power_status_to_can(const power_status_t* status);
+        // power_status_t can_to_power_status(const can_frame_t* frame);
+        // void print_power_status(power_status_t status);
         
         char* endif = "#endif\n";
         fwrite(endif, sizeof(char), strlen(endif), h_fp);
-
-        for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
-            printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");
-        }
     }
     
 
