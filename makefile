@@ -12,7 +12,7 @@ read_can:
 	gcc ./src/can/read_can.c ./src/can/utils.c ./src/can/msg/power_status/power_status.c -o ./build/can/read_can && ./build/can/read_can
 
 codec:
-	gcc ./src/can/codec/codec.c -o ./build/can/codec/codec && ./build/can/codec/codec
+	gcc ./src/can/codec/codec.c -lm -o ./build/can/codec/codec && ./build/can/codec/codec
 
 test_can:
 	gcc -g ./src/can/test_can.c  ./src/can/utils.c -o ./build/can/test_can && ./build/can/test_can

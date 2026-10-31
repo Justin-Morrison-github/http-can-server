@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <math.h> // For ceil()
 
 #define MAX_SIGNAL_NAME 64
 #define MAX_MESSAGE_NAME 64
@@ -23,6 +24,7 @@ typedef struct signal {
 typedef struct message_header {
     char name[MAX_MESSAGE_NAME];
     uint32_t id;
+    uint16_t interval_ms;
 } message_header_t;
 
 typedef struct message {
@@ -31,6 +33,7 @@ typedef struct message {
     size_t num_signals; 
     struct message* next;
     struct message* tail;
+    size_t size_bytes;
 } message_t;
 
 void* malloc_or_fail(size_t size){
@@ -83,16 +86,28 @@ bool is_single_message_footer(char* str){
     return strcmp(str, MESSAGE_FOOTER) == 0;
 }
 
-uint32_t hex_id_to_u32(char hex_id[5]) {
+uint32_t hex_str_to_u32(char* input) {
     char* endptr;
-    long parsed = strtol(hex_id, &endptr, 16);
+    long parsed = strtol(input, &endptr, 16);
 
-    if (hex_id == endptr) {
+    if (input == endptr) {
         printf("Parsing failed: No valid hex digits found.\n");
         return 0;
     }
 
     return (uint32_t) parsed;
+}
+
+uint16_t str_to_u16(char* input){
+    char* endptr;
+    long parsed = strtol(input, &endptr, 10);
+
+    if (input == endptr) {
+        printf("Parsing failed: No valid digits found.\n");
+        return 0;
+    }
+
+    return (uint16_t) parsed;
 }
 
 void split(char* str, char delimiter, char* left, char* right) {
@@ -128,15 +143,22 @@ message_header_t parse_message_header_line(char* line) {
     strip(right);
 
     char msg_name[MAX_MESSAGE_NAME];
-    char msg_id[MAX_MESSAGE_NAME];
-    split(right, ' ', msg_name, msg_id);
+    split(right, ' ', msg_name, right);
     strip(msg_name);
-    strip(msg_id);
+    strip(right);
+
+    char msg_id[MAX_MESSAGE_NAME];
+    char interval_ms[MAX_MESSAGE_NAME];
+
+    split(right, '@', msg_id, interval_ms);
+    strip(msg_name);
+    strip(interval_ms);
 
     uint32_t id;
 
     message_header_t msg_header;
-    msg_header.id = hex_id_to_u32(msg_id);
+    msg_header.id = hex_str_to_u32(msg_id);
+    msg_header.interval_ms = str_to_u16(interval_ms);
     memcpy(msg_header.name, msg_name, strlen(msg_name) + 1);
     return msg_header;
 }
@@ -231,11 +253,14 @@ int main(void) {
         if(is_single_message_header(line_buf)) {
             message_t* message_p = (message_t*) malloc_or_fail(sizeof(message_t));
             message_p->num_signals = 0;
+            message_p->size_bytes = 0;
             message_p->header = parse_message_header_line(line_buf);
             message_p->signals = (signal_t*) malloc_or_fail(sizeof(signal_t));
             message_p->signals->next = NULL;
             message_p->signals->tail = message_p->signals;
 
+
+            size_t size_bits = 0;
             // Parse inner signal lines
             while (fgets(line_buf, 100, fp) != NULL) {
                 strip(line_buf);
@@ -246,6 +271,7 @@ int main(void) {
                 message_p->num_signals++;
 
                 signal_t* signal = parse_signal_line(line_buf);
+                size_bits += signal->num_bits;
                 
                 // Set new node to point to NULL (end of list)
                 signal->next = NULL;
@@ -256,6 +282,7 @@ int main(void) {
                 // Update tail itself to point at new node
                 message_p->signals->tail = signal;
             }
+            message_p->size_bytes = ceil(size_bits / 8.0);
 
             // Set new node to point to NULL (end of list)
             message_p->next = NULL;
@@ -304,17 +331,43 @@ int main(void) {
         //     return 1;
         // }
         
-        char ifndef_str[120];
-        char define_str[120];
-        char endif_str[10];
+        size_t LINE_BUF_SIZE = 150;
+        char line_buf[LINE_BUF_SIZE];
         char upper_case_name[100];
         to_upper_str(snake_case_name, upper_case_name);
-        snprintf(ifndef_str, 120, "#ifndef %s_H\n", upper_case_name);
-        snprintf(define_str, 120, "#define %s_H\n", upper_case_name);
-        snprintf(endif_str, 120, "#endif\n");
-        fwrite(ifndef_str, sizeof(char), strlen(ifndef_str), h_fp);
-        fwrite(define_str, sizeof(char), strlen(define_str), h_fp);
-        fwrite(endif_str, sizeof(char), strlen(endif_str), h_fp);
+        
+        snprintf(line_buf, LINE_BUF_SIZE, "#ifndef %s_H\n", upper_case_name);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+        
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_H\n", upper_case_name);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+     
+        snprintf(line_buf, LINE_BUF_SIZE, "#include <stdint.h>\n");
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        snprintf(line_buf, LINE_BUF_SIZE, "#include \"../../utils.h\"\n");
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_ID 0x%03X\n", upper_case_name, curr->header.id);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_DLC %ld\n", upper_case_name, curr->size_bytes);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_INTERVAL_MS %d\n", upper_case_name, curr->header.interval_ms);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+
+        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_NAME \"%s\"\n", upper_case_name, curr->header.name);
+        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
+        
+        // #define POWER_STATUS_ID 0x444
+        // #define POWER_STATUS_DLC 2
+        // #define POWER_STATUS_INTERVAL_MS 1000
+        // #define POWER_STATUS_NAME "PowerStatus"
+        
+        char* endif = "#endif\n";
+        fwrite(endif, sizeof(char), strlen(endif), h_fp);
 
         for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
             printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");

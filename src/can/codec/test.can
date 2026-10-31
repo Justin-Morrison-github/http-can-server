@@ -1,10 +1,17 @@
 <MESSAGES
-	<MESSAGE: MotorControlStatus 0x010
+	<MESSAGE: MotorControlStatus 0x010 @10
 		speed_ms:           16 | -
 		charge_percent:     8  | +
 	MESSAGE>
-	<MESSAGE: TemperatureSensor 0x0FF
+	<MESSAGE: TemperatureSensor 0x0FF @100
 		time_ms:    		64 | +
 		temp_c:        		8 | -
+	MESSAGE>
+	<MESSAGE: MotorErrorFlags 0x403 @1000
+		over_voltage:    	1 | +
+		over_current:    	1 | +
+		under_voltage:    	1 | +
+		under_current:    	1 | +
+		overheating:    	1 | +
 	MESSAGE>
 MESSAGES>
