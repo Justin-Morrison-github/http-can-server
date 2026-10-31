@@ -10,31 +10,8 @@
 #include <errno.h>
 #include <math.h> // For ceil()
 
-#define MAX_SIGNAL_NAME 64
-#define MAX_MESSAGE_NAME 64
-
-typedef struct signal {
-    char name[MAX_SIGNAL_NAME];
-    size_t num_bits;
-    bool sign;
-    struct signal* next;
-    struct signal* tail;
-} signal_t;
-
-typedef struct message_header {
-    char name[MAX_MESSAGE_NAME];
-    uint32_t id;
-    uint16_t interval_ms;
-} message_header_t;
-
-typedef struct message {
-    message_header_t header;
-    signal_t* signals;
-    size_t num_signals; 
-    struct message* next;
-    struct message* tail;
-    size_t size_bytes;
-} message_t;
+#include "generate_header.h"
+#include "common.h"
 
 void* malloc_or_fail(size_t size){
     void* p = malloc(size);
@@ -194,66 +171,6 @@ signal_t* parse_signal_line(char* line) {
     return signal_p;
 }
 
-void camel_to_snake_case(char* name, char* output){
-
-    int j = 0;
-    for (int i = 0; name[i] != '\0'; i++) {
-        char c = name[i];
-        if (isupper(c)) {
-            if (i > 0) {
-                output[j++] = '_';
-            }
-            output[j++] = tolower(c);
-        } else {
-            output[j++] = c;
-        }
-    }
-    output[j] = '\0';
-}
-
-void to_upper_str(char* input, char* output){
-    int i;
-    for (i = 0; input[i] != '\0'; i++) {
-        output[i] = toupper(input[i]);
-    }
-    output[i] = '\0';
-}
-
-char* type_from_num_bits_and_sign(size_t num_bits, bool is_signed) {
-    if (num_bits < 1 || num_bits > 64) {
-        fprintf(stderr, "invalid num_bits for type");
-        return "?";
-    }
-    
-    if (num_bits == 1) {
-        return "bool";
-    }
-
-    if (is_signed) {
-        if (num_bits <= 8) {
-            return "int8_t";
-        } else if (num_bits <= 16) {
-            return "int16_t";
-        } else if (num_bits <= 32) {
-            return "int32_t";
-        } else if (num_bits <= 64) {
-            return "int64_t";
-        }
-    } else {
-        if (num_bits <= 8) {
-            return "uint8_t";
-        } else if (num_bits <= 16) {
-            return "uint16_t";
-        } else if (num_bits <= 32) {
-            return "uint32_t";
-        } else if (num_bits <= 64) {
-            return "uint64_t";
-        }
-    }
-
-    return "?";
-}
-
 int main(void) {
     FILE* fp = fopen("./src/can/codec/test.can", "r");
     if (fp == NULL) {
@@ -333,100 +250,8 @@ int main(void) {
     //Prints all messages and signals
     for (message_t* curr = msg_dummy->next; curr != NULL; curr = curr->next) {
         printf("%s : 0x%03X\n", curr->header.name, curr->header.id);
-        
-        char snake_case_name[100];
-        camel_to_snake_case(curr->header.name, snake_case_name);
-        
-        char parent_dir_path[PATH_MAX];
-        snprintf(parent_dir_path, PATH_MAX, "./src/can/msg/%s", snake_case_name);
 
-        if (mkdir(parent_dir_path, 0755) != 0) {
-            // Fine if directory already exists
-            if (errno != EEXIST) {
-                perror("Error creating directory");
-                exit(1);
-            }
-        }
-        
-        char file_path_h[PATH_MAX];
-        snprintf(file_path_h, PATH_MAX, "./src/can/msg/%s/%s.h", snake_case_name, snake_case_name);
-
-        char file_path_c[PATH_MAX];
-        snprintf(file_path_c, PATH_MAX, "./src/can/msg/%s/%s.c", snake_case_name, snake_case_name);
-
-        FILE* h_fp = fopen(file_path_h, "w");
-        if (h_fp == NULL) {
-            perror("fopen");
-            return 1;
-        }
-
-        // FILE* c_fp = fopen(file_path_c, "w");
-        // if (c_fp == NULL) {
-        //     perror("fopen");
-        //     return 1;
-        // }
-        
-        size_t LINE_BUF_SIZE = 150;
-        char line_buf[LINE_BUF_SIZE];
-        char upper_case_name[100];
-        to_upper_str(snake_case_name, upper_case_name);
-        
-        snprintf(line_buf, LINE_BUF_SIZE, "#ifndef %s_H\n", upper_case_name);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-        
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_H\n", upper_case_name);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-     
-        snprintf(line_buf, LINE_BUF_SIZE, "#include <stdint.h>\n");
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "#include <stdbool.h>\n");
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "#include \"../../utils.h\"\n");
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_ID 0x%03X\n", upper_case_name, curr->header.id);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_LEN %ld\n", upper_case_name, curr->size_bytes);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_INTERVAL_MS %d\n", upper_case_name, curr->header.interval_ms);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "#define %s_NAME \"%s\"\n", upper_case_name, curr->header.name);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        snprintf(line_buf, LINE_BUF_SIZE, "typedef struct %s {\n", snake_case_name);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-        char* type;
-        for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
-            char* type = type_from_num_bits_and_sign(curr_sig->num_bits, curr_sig->sign);
-            
-            snprintf(line_buf, LINE_BUF_SIZE, "\t%s %s;\n", type, curr_sig->name);
-            fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-            
-            // printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");
-        }
-
-        snprintf(line_buf, LINE_BUF_SIZE, "} %s_t; \n", snake_case_name);
-        fwrite(line_buf, sizeof(char), strlen(line_buf), h_fp);
-
-
-        // typedef struct power_status {
-        //     uint8_t percent_charge;
-        //     bool power_on;
-        //     bool valid;
-        // } power_status_t;
-        // can_frame_t power_status_to_can(const power_status_t* status);
-        // power_status_t can_to_power_status(const can_frame_t* frame);
-        // void print_power_status(power_status_t status);
-        
-        char* endif = "#endif\n";
-        fwrite(endif, sizeof(char), strlen(endif), h_fp);
+        int result = generate_header(curr);
     }
     
 
