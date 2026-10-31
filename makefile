@@ -1,4 +1,4 @@
-.PHONY: server client send_can read_can codec can_node
+.PHONY: server client send_can read_can codec can_node test_can
 server:
 	gcc ./src/http/server.c ./src/http/http.c -o ./build/http/server &&  ./build/http/server
 
@@ -13,3 +13,6 @@ read_can:
 
 codec:
 	gcc ./src/can/codec/codec.c -o ./build/can/codec/codec && ./build/can/codec/codec
+
+test_can:
+	gcc -g ./src/can/test_can.c  ./src/can/utils.c -o ./build/can/test_can && ./build/can/test_can
