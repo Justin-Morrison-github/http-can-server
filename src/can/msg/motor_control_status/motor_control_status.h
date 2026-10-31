@@ -1,0 +1,3 @@
+#ifndef MOTOR_CONTROL_STATUS_H
+#define MOTOR_CONTROL_STATUS_H
+#endif

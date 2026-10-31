@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h> // For PATH_MAX
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <errno.h>
 
 #define MAX_SIGNAL_NAME 64
 #define MAX_MESSAGE_NAME 64
@@ -168,10 +172,32 @@ signal_t* parse_signal_line(char* line) {
     return signal_p;
 }
 
+void camel_to_snake_case(char* name, char* output){
 
+    int j = 0;
+    for (int i = 0; name[i] != '\0'; i++) {
+        char c = name[i];
+        if (isupper(c)) {
+            if (i > 0) {
+                output[j++] = '_';
+            }
+            output[j++] = tolower(c);
+        } else {
+            output[j++] = c;
+        }
+    }
+    output[j] = '\0';
+}
+
+void to_upper_str(char* input, char* output){
+    int i;
+    for (i = 0; input[i] != '\0'; i++) {
+        output[i] = toupper(input[i]);
+    }
+    output[i] = '\0';
+}
 
 int main(void) {
-
     FILE* fp = fopen("./src/can/codec/test.can", "r");
     if (fp == NULL) {
         perror("fopen");
@@ -245,6 +271,50 @@ int main(void) {
     //Prints all messages and signals
     for (message_t* curr = msg_dummy->next; curr != NULL; curr = curr->next) {
         printf("%s : 0x%03X\n", curr->header.name, curr->header.id);
+        
+        char snake_case_name[100];
+        camel_to_snake_case(curr->header.name, snake_case_name);
+        
+        char parent_dir_path[PATH_MAX];
+        snprintf(parent_dir_path, PATH_MAX, "./src/can/msg/%s", snake_case_name);
+
+        if (mkdir(parent_dir_path, 0755) != 0) {
+            // Fine if directory already exists
+            if (errno != EEXIST) {
+                perror("Error creating directory");
+                exit(1);
+            }
+        }
+        
+        char file_path_h[PATH_MAX];
+        snprintf(file_path_h, PATH_MAX, "./src/can/msg/%s/%s.h", snake_case_name, snake_case_name);
+
+        char file_path_c[PATH_MAX];
+        snprintf(file_path_c, PATH_MAX, "./src/can/msg/%s/%s.c", snake_case_name, snake_case_name);
+
+        FILE* h_fp = fopen(file_path_h, "w");
+        if (h_fp == NULL) {
+            perror("fopen");
+            return 1;
+        }
+
+        // FILE* c_fp = fopen(file_path_c, "w");
+        // if (c_fp == NULL) {
+        //     perror("fopen");
+        //     return 1;
+        // }
+        
+        char ifndef_str[120];
+        char define_str[120];
+        char endif_str[10];
+        char upper_case_name[100];
+        to_upper_str(snake_case_name, upper_case_name);
+        snprintf(ifndef_str, 120, "#ifndef %s_H\n", upper_case_name);
+        snprintf(define_str, 120, "#define %s_H\n", upper_case_name);
+        snprintf(endif_str, 120, "#endif\n");
+        fwrite(ifndef_str, sizeof(char), strlen(ifndef_str), h_fp);
+        fwrite(define_str, sizeof(char), strlen(define_str), h_fp);
+        fwrite(endif_str, sizeof(char), strlen(endif_str), h_fp);
 
         for (signal_t* curr_sig = curr->signals->next; curr_sig != NULL; curr_sig = curr_sig->next) {
             printf("    %s | %ld | %s\n", curr_sig->name, curr_sig->num_bits, curr_sig->sign ? "-" : "+");
