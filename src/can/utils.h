@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
@@ -41,5 +42,7 @@ typedef enum SockResult {
 char* sock_result_str(SockResult_t result);
 SockResult_t write_to_socket(int fd, can_frame_t* frame);
 SockResult_t read_from_socket(int fd, can_frame_t* frame);
+
+char* byte_mask_from_num_bits(size_t num_bits);
 
 #endif
