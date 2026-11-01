@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <math.h> // For ceil()
 
-#include "generate_header.h"
+#include "generator.h"
 #include "common.h"
 
 void* malloc_or_fail(size_t size){
@@ -252,6 +252,7 @@ int main(void) {
         printf("%s : 0x%03X\n", curr->header.name, curr->header.id);
 
         int result = generate_header(curr);
+        result = generate_source(curr);
     }
     
 
