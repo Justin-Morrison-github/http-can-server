@@ -96,29 +96,34 @@ int generate_source(message_t* msg) {
     to_upper_str(snake_case_name, upper_case_name);
     
     fprintf(fp, "#include \"%s.h\"\n\n", snake_case_name);
+    fputs("#include <stddef.h>\n", fp);
 
     char struct_t_name[110];
     snprintf(struct_t_name, 110, "%s_t", snake_case_name);
 
     fprintf(fp, "can_frame_t %s_to_can(const %s* msg) {\n", snake_case_name, struct_t_name);
-    fputs("can_frame_t frame;", fp);
-    // can_frame_t frame;
-    // if (status == NULL) {
-    //     frame.can_id = INVALID_ID;
-    //     return frame;
-    // }
-    // frame.can_id = POWER_STATUS_ID;
-    // frame.len = POWER_STATUS_DLC;
-    // memcpy(&frame.data[0], &status->percent_charge, sizeof(status->percent_charge));
-    // memcpy(&frame.data[1], &status->power_on, sizeof(status->power_on));
+    fputs("\tcan_frame_t frame = {0};\n", fp);
+    fputs("\tif(msg == NULL) {\n", fp);
+    fputs("\t\tframe.can_id = INVALID_ID;\n", fp);
+    fputs("\t\treturn frame;\n", fp);
+    fputs("\t}\n\n", fp);
 
-    // return frame;
-    
-    
+    fprintf(fp, "\tframe.can_id = %s_ID;\n", upper_case_name);
+    fprintf(fp, "\tframe.len = %s_LEN;\n", upper_case_name);  
+
+    char buffer[1000];
+    size_t buffer_cursor = 0;
+    size_t num_bits = 0;
+
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        num_bits += signal->num_bits;
+        char* type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
+    }
+
+    fputs("\treturn frame;\n", fp);
+
+    //function end
     fputs("}\n", fp);
-
-
-
 
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame) {\n", struct_t_name, snake_case_name);
     fputs("}\n", fp);
