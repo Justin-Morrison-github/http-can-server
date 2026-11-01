@@ -21,8 +21,11 @@ int main(void) {
     
     // Make a power_status_t
     power_status_t power_status;
-    power_status.percent_charge = 16;
+    power_status.percent_charge = 127;
+    power_status.status = 3;
     power_status.power_on = true;
+    power_status.valid = true;
+    print_power_status(power_status);
 
     can_frame_t frame = power_status_to_can(&power_status);
     printf("Data to send: [0x%02X, 0x%02X]\n", frame.data[0], frame.data[1]);

@@ -75,9 +75,9 @@ SockResult_t write_to_socket(int fd, can_frame_t* frame) {
     } else if (n_bytes != sizeof(can_frame_t)) {
         fprintf(stderr, "%ld of %ld bytes written", n_bytes, sizeof(can_frame_t));
         return SOCK_WRITE_FAIL;
-    } else {
-        printf("Sent 0x%03X, %u bytes\n", frame->can_id, frame->len);
     }
+    
+    printf("Sent 0x%03X: %u bytes\n", frame->can_id, frame->len);
 
     return SOCK_OK;
 }
@@ -101,6 +101,7 @@ SockResult_t read_from_socket(int fd, can_frame_t* frame) {
         return SOCK_READ_FAIL;
     }  
 
+    printf("Read 0x%03X: %lu bytes\n", frame->can_id, n_bytes);
     return SOCK_OK;
 }
 
@@ -153,4 +154,19 @@ can_ack_t can_to_ack(can_frame_t frame) {
     memcpy(&ack.can_id, &frame.data[0], 4);
     memcpy(&ack.status, &frame.data[4], 1);
     return ack;
+}
+
+char* byte_mask_from_num_bits(size_t num_bits) {
+    switch (num_bits)
+    {
+        case 1: return "0x01";
+        case 2: return "0x03";
+        case 3: return "0x07";
+        case 4: return "0x0F";
+        case 5: return "0x1F";
+        case 6: return "0x3F";
+        case 7: return "0x7F";
+        case 8: return "0xFF";
+        default: return "0x00";
+    }
 }

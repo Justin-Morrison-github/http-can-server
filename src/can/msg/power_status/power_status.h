@@ -11,7 +11,8 @@
 #define POWER_STATUS_NAME "PowerStatus"
 
 typedef struct power_status {
-    uint8_t percent_charge;
+    uint8_t percent_charge; // Only uses 7 bits
+    uint8_t status; // Only uses 2 bits, 4 values: OK, ERR, FAULT, UNKNOWN
     bool power_on;
     bool valid;
 } power_status_t;

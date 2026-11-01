@@ -33,6 +33,13 @@ int main(void) {
             printf("Recived: 0x%03X\n", frame_in.can_id);
 
             power_status_t power_status = can_to_power_status(&frame_in);
+            if (!power_status.valid) {
+                printf("error decoding power_status\n");
+                exit(1);
+            }
+
+            print_power_status(power_status);
+            
             can_ack_t power_status_ack = create_ack(POWER_STATUS_ID, ACK_ERR);
             can_frame_t frame = ack_to_can(power_status_ack);
 
