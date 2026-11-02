@@ -10,6 +10,11 @@ can_frame_t motor_error_flags_to_can(const motor_error_flags_t* msg) {
 
 	frame.can_id = MOTOR_ERROR_FLAGS_ID;
 	frame.len = MOTOR_ERROR_FLAGS_LEN;
+	frame.data[0] |= (uint8_t) ((msg->over_voltage & 0x01) << 7);
+	frame.data[0] |= (uint8_t) ((msg->over_current & 0x01) << 6);
+	frame.data[0] |= (uint8_t) ((msg->under_voltage & 0x01) << 5);
+	frame.data[0] |= (uint8_t) ((msg->under_current & 0x01) << 4);
+	frame.data[0] |= (uint8_t) ((msg->overheating & 0x01) << 3);
 	return frame;
 }
 motor_error_flags_t can_to_motor_error_flags(const can_frame_t* frame) {

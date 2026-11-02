@@ -10,6 +10,18 @@ can_frame_t test_to_can(const test_t* msg) {
 
 	frame.can_id = TEST_ID;
 	frame.len = TEST_LEN;
+	frame.data[0] |= (uint8_t) ((msg->bool1 & 0x01) << 7);
+	frame.data[0] |= (uint8_t) ((msg->bool2 & 0x01) << 6);
+	frame.data[0] |= (uint8_t) ((msg->u8 >> 2) & 0x3F);
+	frame.data[1] |= (uint8_t) ((msg->u8 & 0x03) << 6);
+	frame.data[1] |= (uint8_t) ((msg->u16 >> 10) & 0x3F);
+	frame.data[2] |= (uint8_t) ((msg->u16 >> 2) & 0xFF);
+	frame.data[3] |= (uint8_t) ((msg->u16 & 0x03) << 6);
+	frame.data[3] |= (uint8_t) ((msg->u32 >> 26) & 0x3F);
+	frame.data[4] |= (uint8_t) ((msg->u32 >> 18) & 0xFF);
+	frame.data[5] |= (uint8_t) ((msg->u32 >> 10) & 0xFF);
+	frame.data[6] |= (uint8_t) ((msg->u32 >> 2) & 0xFF);
+	frame.data[7] |= (uint8_t) ((msg->u32 & 0x03) << 6);
 	return frame;
 }
 test_t can_to_test(const can_frame_t* frame) {

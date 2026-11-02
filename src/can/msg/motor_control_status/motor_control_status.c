@@ -10,6 +10,9 @@ can_frame_t motor_control_status_to_can(const motor_control_status_t* msg) {
 
 	frame.can_id = MOTOR_CONTROL_STATUS_ID;
 	frame.len = MOTOR_CONTROL_STATUS_LEN;
+	frame.data[0] |= (uint8_t) ((msg->speed_ms >> 8) & 0xFF);
+	frame.data[1] |= (uint8_t) (msg->speed_ms & 0xFF);
+	frame.data[2] |= (uint8_t) (msg->charge_percent & 0xFF);
 	return frame;
 }
 motor_control_status_t can_to_motor_control_status(const can_frame_t* frame) {

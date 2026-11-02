@@ -83,7 +83,6 @@ void can_to_msg_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_ca
     fprintf(fp, "\tuint8_t* data = frame->data;\n");
 
     int bit_offset = 0;
-
     for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
         size_t consumed = 0;
         fprintf(fp, "\t%s.%s = ", snake_case_name, signal->name);
@@ -142,7 +141,44 @@ void msg_to_can_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_ca
     fprintf(fp, "\tframe.can_id = %s_ID;\n", upper_case_name);
     fprintf(fp, "\tframe.len = %s_LEN;\n", upper_case_name);  
 
-    // TODO
+    int bit_offset = 0;
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        size_t consumed = 0;
+
+        while (consumed < signal->num_bits) {
+            size_t pos = bit_offset + consumed;
+            size_t bit_in_byte = pos % 8;
+
+            size_t taken = safe_min(signal->num_bits - consumed,  8 - bit_in_byte);
+
+            size_t l_shift = 8 - bit_in_byte - taken;
+            size_t r_shift =  signal->num_bits - consumed - taken;
+            char* mask = byte_mask_from_num_bits(taken);
+            size_t byte = pos / 8;
+            fprintf(fp, "\tframe.data[%zu] |= (uint8_t) ", byte);
+
+            if (r_shift == 0) {
+                if (l_shift == 0) {
+                    fprintf(fp, "(msg->%s & %s)", signal->name, mask);
+                } else {
+                    fprintf(fp, "((msg->%s & %s) << %zu)", signal->name, mask, l_shift);
+                }
+                
+            } else {
+                 if (l_shift == 0) {
+                    fprintf(fp, "((msg->%s >> %zu) & %s)", signal->name, r_shift, mask);
+                } else {
+                    fprintf(fp, "(((msg->%s >> %zu) & %s) << %zu)", signal->name, r_shift, mask, l_shift);
+                }
+            }
+
+            fputs(";\n", fp);
+            consumed += taken;
+        }
+
+        bit_offset += signal->num_bits;
+    }
+
     fputs("\treturn frame;\n", fp);
 
     //function end
