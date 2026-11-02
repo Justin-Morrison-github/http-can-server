@@ -156,17 +156,3 @@ can_ack_t can_to_ack(can_frame_t frame) {
     return ack;
 }
 
-char* byte_mask_from_num_bits(size_t num_bits) {
-    switch (num_bits)
-    {
-        case 1: return "0x01";
-        case 2: return "0x03";
-        case 3: return "0x07";
-        case 4: return "0x0F";
-        case 5: return "0x1F";
-        case 6: return "0x3F";
-        case 7: return "0x7F";
-        case 8: return "0xFF";
-        default: return "0x00";
-    }
-}
