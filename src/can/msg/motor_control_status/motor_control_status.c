@@ -14,12 +14,14 @@ can_frame_t motor_control_status_to_can(const motor_control_status_t* msg) {
 }
 motor_control_status_t can_to_motor_control_status(const can_frame_t* frame) {
 	motor_control_status_t motor_control_status;
-	if(frame == NULL || frame->len != MOTOR_CONTROL_STATUS_LEN) {
+	if(frame == NULL || frame->data == NULL || frame->len != MOTOR_CONTROL_STATUS_LEN) {
 		motor_control_status.valid = false;
 		return motor_control_status;
 	}
 
-	// TODO finish data unpacking
+	uint8_t* data = frame->data;
+	motor_control_status.speed_ms = ((data[0] & 0xFF) << 8) | (data[1] & 0xFF);
+	motor_control_status.charge_percent = (data[2] & 0xFF);
 	motor_control_status.valid = true;
 	return motor_control_status;
 }

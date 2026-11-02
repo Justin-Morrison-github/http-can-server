@@ -65,7 +65,12 @@ int generate_header(message_t* msg) {
     fputs("#endif\n", fp);
     return 0;
 }
-    
+#define safe_min(a, b) ({          \
+    __typeof__ (a) _a = (a);       \
+    __typeof__ (b) _b = (b);       \
+    _a < _b ? _a : _b;             \
+})
+
 int generate_source(message_t* msg) { 
     char snake_case_name[100];
     camel_to_snake_case(msg->header.name, snake_case_name);
@@ -111,15 +116,7 @@ int generate_source(message_t* msg) {
     fprintf(fp, "\tframe.can_id = %s_ID;\n", upper_case_name);
     fprintf(fp, "\tframe.len = %s_LEN;\n", upper_case_name);  
 
-    char buffer[1000];
-    size_t buffer_cursor = 0;
-    size_t num_bits = 0;
-
-    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
-        num_bits += signal->num_bits;
-        char* type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
-    }
-
+    // TODO
     fputs("\treturn frame;\n", fp);
 
     //function end
@@ -127,12 +124,54 @@ int generate_source(message_t* msg) {
 
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame) {\n", struct_t_name, snake_case_name);
     fprintf(fp, "\t%s %s;\n", struct_t_name, snake_case_name);
-    fprintf(fp, "\tif(frame == NULL || frame->len != %s_LEN) {\n", upper_case_name);
+    fprintf(fp, "\tif(frame == NULL || frame->data == NULL || frame->len != %s_LEN) {\n", upper_case_name);
     fprintf(fp, "\t\t%s.valid = false;\n", snake_case_name);
     fprintf(fp, "\t\treturn %s;\n", snake_case_name);
     fputs("\t}\n\n", fp);
     
-    fputs("\t// TODO finish data unpacking\n", fp);
+    fprintf(fp, "\tuint8_t* data = frame->data;\n");
+
+    int bit_offset = 0;
+
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        size_t consumed = 0;
+        fprintf(fp, "\t%s.%s = ", snake_case_name, signal->name);
+        int num_ors = 0;
+
+        while (consumed < signal->num_bits) {
+            size_t pos = bit_offset + consumed;
+            size_t bit_in_byte = pos % 8;
+
+            size_t taken = safe_min(signal->num_bits - consumed,  8 - bit_in_byte);
+            if (num_ors > 0) {
+                fprintf(fp, " | ");
+            }
+
+            size_t r_shift = 8 - bit_in_byte - taken;
+            size_t l_shift =  signal->num_bits - consumed - taken;
+
+            if (r_shift == 0) {
+                if (l_shift == 0) {
+                    fprintf(fp, "(data[%zu] & %s)", pos / 8, byte_mask_from_num_bits(taken));
+                } else {
+                    fprintf(fp, "((data[%zu] & %s) << %zu)", pos / 8, byte_mask_from_num_bits(taken), l_shift);
+                }
+                
+            } else {
+                 if (l_shift == 0) {
+                    fprintf(fp, "((data[%zu] >> %zu) & %s)", pos / 8, r_shift, byte_mask_from_num_bits(taken));
+                } else {
+                    fprintf(fp, "(((data[%zu] >> %zu) & %s) << %zu)", pos / 8, r_shift, byte_mask_from_num_bits(taken), l_shift);
+                }
+            }
+            
+            num_ors++;
+            consumed += taken;
+        }
+        fputs(";\n", fp);
+
+        bit_offset += signal->num_bits;
+    }
 
     fprintf(fp, "\t%s.valid = true;\n", snake_case_name);
 
