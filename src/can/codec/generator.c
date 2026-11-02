@@ -48,15 +48,15 @@ int generate_header(message_t* msg) {
     fprintf(fp, "#define %s_INTERVAL_MS %d\n", upper_case_name, msg->header.interval_ms);
     fprintf(fp, "#define %s_NAME \"%s\"\n\n", upper_case_name, msg->header.name);
     fprintf(fp, "typedef struct %s {\n", snake_case_name);
-    for (signal_t* msg_sig = msg->signals->next; msg_sig != NULL; msg_sig = msg_sig->next) {
-        char* type = type_from_num_bits_and_sign(msg_sig->num_bits, msg_sig->sign);
-        
-        fprintf(fp, "\t%s %s;\n", type, msg_sig->name);        
-    }
 
     char struct_t_name[110];
     snprintf(struct_t_name, 110, "%s_t", snake_case_name);
 
+    for (signal_t* msg_sig = msg->signals->next; msg_sig != NULL; msg_sig = msg_sig->next) {
+        char* type = type_from_num_bits_and_sign(msg_sig->num_bits, msg_sig->sign);
+        fprintf(fp, "\t%s %s;\n", type, msg_sig->name);        
+    }
+    fputs("\tbool valid;  // Not included on wire\n", fp);        
     fprintf(fp, "} %s;\n\n", struct_t_name);
     fprintf(fp, "can_frame_t %s_to_can(const %s* msg);\n", snake_case_name, struct_t_name);
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame);\n", struct_t_name, snake_case_name);
@@ -126,7 +126,19 @@ int generate_source(message_t* msg) {
     fputs("}\n", fp);
 
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame) {\n", struct_t_name, snake_case_name);
+    fprintf(fp, "\t%s %s;\n", struct_t_name, snake_case_name);
+    fprintf(fp, "\tif(frame == NULL || frame->len != %s_LEN) {\n", upper_case_name);
+    fprintf(fp, "\t\t%s.valid = false;\n", snake_case_name);
+    fprintf(fp, "\t\treturn %s;\n", snake_case_name);
+    fputs("\t}\n\n", fp);
+    
+    fputs("\t// TODO finish data unpacking\n", fp);
+
+    fprintf(fp, "\t%s.valid = true;\n", snake_case_name);
+
+    fprintf(fp, "\treturn %s;\n", snake_case_name);
     fputs("}\n", fp);
+
     fprintf(fp, "void print_%s(%s msg) {\n", snake_case_name, struct_t_name);
     fputs("}\n", fp);
     return 0;

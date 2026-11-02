@@ -13,6 +13,7 @@
 typedef struct motor_control_status {
 	int16_t speed_ms;
 	uint8_t charge_percent;
+	bool valid;  // Not included on wire
 } motor_control_status_t;
 
 can_frame_t motor_control_status_to_can(const motor_control_status_t* msg);

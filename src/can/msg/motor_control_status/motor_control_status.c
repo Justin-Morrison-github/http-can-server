@@ -13,6 +13,15 @@ can_frame_t motor_control_status_to_can(const motor_control_status_t* msg) {
 	return frame;
 }
 motor_control_status_t can_to_motor_control_status(const can_frame_t* frame) {
+	motor_control_status_t motor_control_status;
+	if(frame == NULL || frame->len != MOTOR_CONTROL_STATUS_LEN) {
+		motor_control_status.valid = false;
+		return motor_control_status;
+	}
+
+	// TODO finish data unpacking
+	motor_control_status.valid = true;
+	return motor_control_status;
 }
 void print_motor_control_status(motor_control_status_t msg) {
 }

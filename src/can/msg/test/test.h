@@ -21,6 +21,7 @@ typedef struct test {
 	int32_t i32;
 	uint64_t u64;
 	int64_t i64;
+	bool valid;  // Not included on wire
 } test_t;
 
 can_frame_t test_to_can(const test_t* msg);

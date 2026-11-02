@@ -16,6 +16,7 @@ typedef struct motor_error_flags {
 	bool under_voltage;
 	bool under_current;
 	bool overheating;
+	bool valid;  // Not included on wire
 } motor_error_flags_t;
 
 can_frame_t motor_error_flags_to_can(const motor_error_flags_t* msg);
