@@ -65,63 +65,14 @@ int generate_header(message_t* msg) {
     fputs("#endif\n", fp);
     return 0;
 }
+
 #define safe_min(a, b) ({          \
     __typeof__ (a) _a = (a);       \
     __typeof__ (b) _b = (b);       \
     _a < _b ? _a : _b;             \
 })
 
-int generate_source(message_t* msg) { 
-    char snake_case_name[100];
-    camel_to_snake_case(msg->header.name, snake_case_name);
-    
-    char parent_dir_path[PATH_MAX];
-    snprintf(parent_dir_path, PATH_MAX, "./src/can/msg/%s", snake_case_name);
-
-    if (mkdir(parent_dir_path, 0755) != 0) {
-        // Fine if directory already exists
-        if (errno != EEXIST) {
-            perror("Error creating directory");
-            exit(1);
-        }
-    }
-    
-    char file_path_c[PATH_MAX];
-    snprintf(file_path_c, PATH_MAX, "./src/can/msg/%s/%s.c", snake_case_name, snake_case_name);
-
-    FILE* fp = fopen(file_path_c, "w");
-    if (fp == NULL) {
-        perror("fopen");
-        return 1;
-    }
-
-    size_t LINE_BUF_SIZE = 1000;
-    char line_buf[LINE_BUF_SIZE];
-    char upper_case_name[100];
-    to_upper_str(snake_case_name, upper_case_name);
-    
-    fprintf(fp, "#include \"%s.h\"\n\n", snake_case_name);
-    fputs("#include <stddef.h>\n", fp);
-
-    char struct_t_name[110];
-    snprintf(struct_t_name, 110, "%s_t", snake_case_name);
-
-    fprintf(fp, "can_frame_t %s_to_can(const %s* msg) {\n", snake_case_name, struct_t_name);
-    fputs("\tcan_frame_t frame = {0};\n", fp);
-    fputs("\tif(msg == NULL) {\n", fp);
-    fputs("\t\tframe.can_id = INVALID_ID;\n", fp);
-    fputs("\t\treturn frame;\n", fp);
-    fputs("\t}\n\n", fp);
-
-    fprintf(fp, "\tframe.can_id = %s_ID;\n", upper_case_name);
-    fprintf(fp, "\tframe.len = %s_LEN;\n", upper_case_name);  
-
-    // TODO
-    fputs("\treturn frame;\n", fp);
-
-    //function end
-    fputs("}\n", fp);
-
+void can_to_msg_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame) {\n", struct_t_name, snake_case_name);
     fprintf(fp, "\t%s %s;\n", struct_t_name, snake_case_name);
     fprintf(fp, "\tif(frame == NULL || frame->data == NULL || frame->len != %s_LEN) {\n", upper_case_name);
@@ -178,8 +129,70 @@ int generate_source(message_t* msg) {
     fprintf(fp, "\treturn %s;\n", snake_case_name);
     fputs("}\n", fp);
 
+}
+
+void msg_to_can_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
+    fprintf(fp, "can_frame_t %s_to_can(const %s* msg) {\n", snake_case_name, struct_t_name);
+    fputs("\tcan_frame_t frame = {0};\n", fp);
+    fputs("\tif(msg == NULL) {\n", fp);
+    fputs("\t\tframe.can_id = INVALID_ID;\n", fp);
+    fputs("\t\treturn frame;\n", fp);
+    fputs("\t}\n\n", fp);
+
+    fprintf(fp, "\tframe.can_id = %s_ID;\n", upper_case_name);
+    fprintf(fp, "\tframe.len = %s_LEN;\n", upper_case_name);  
+
+    // TODO
+    fputs("\treturn frame;\n", fp);
+
+    //function end
+    fputs("}\n", fp);
+}
+
+void print_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "void print_%s(%s msg) {\n", snake_case_name, struct_t_name);
     fputs("}\n", fp);
+}
+
+int generate_source(message_t* msg) { 
+    char snake_case_name[100];
+    camel_to_snake_case(msg->header.name, snake_case_name);
+    
+    char parent_dir_path[PATH_MAX];
+    snprintf(parent_dir_path, PATH_MAX, "./src/can/msg/%s", snake_case_name);
+
+    if (mkdir(parent_dir_path, 0755) != 0) {
+        // Fine if directory already exists
+        if (errno != EEXIST) {
+            perror("Error creating directory");
+            exit(1);
+        }
+    }
+    
+    char file_path_c[PATH_MAX];
+    snprintf(file_path_c, PATH_MAX, "./src/can/msg/%s/%s.c", snake_case_name, snake_case_name);
+
+    FILE* fp = fopen(file_path_c, "w");
+    if (fp == NULL) {
+        perror("fopen");
+        return 1;
+    }
+
+    char upper_case_name[100];
+    to_upper_str(snake_case_name, upper_case_name);
+    
+    fprintf(fp, "#include \"%s.h\"\n\n", snake_case_name);
+    fputs("#include <stddef.h>\n", fp);
+
+    char struct_t_name[110];
+    snprintf(struct_t_name, 110, "%s_t", snake_case_name);
+
+    msg_to_can_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
+
+    can_to_msg_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
+
+    print_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
+
     return 0;
 }
     
