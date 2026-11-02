@@ -105,14 +105,14 @@ void can_to_msg_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_ca
                 if (l_shift == 0) {
                     fprintf(fp, "(data[%zu] & %s)", pos / 8, byte_mask_from_num_bits(taken));
                 } else {
-                    fprintf(fp, "((data[%zu] & %s) << %zu)", pos / 8, byte_mask_from_num_bits(taken), l_shift);
+                    fprintf(fp, "((uint64_t)(data[%zu] & %s) << %zu)", pos / 8, byte_mask_from_num_bits(taken), l_shift);
                 }
                 
             } else {
                  if (l_shift == 0) {
                     fprintf(fp, "((data[%zu] >> %zu) & %s)", pos / 8, r_shift, byte_mask_from_num_bits(taken));
                 } else {
-                    fprintf(fp, "(((data[%zu] >> %zu) & %s) << %zu)", pos / 8, r_shift, byte_mask_from_num_bits(taken), l_shift);
+                    fprintf(fp, "(((uint64_t)(data[%zu] >> %zu) & %s) << %zu)", pos / 8, r_shift, byte_mask_from_num_bits(taken), l_shift);
                 }
             }
             

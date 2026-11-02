@@ -22,9 +22,9 @@ test_t can_to_test(const can_frame_t* frame) {
 	uint8_t* data = frame->data;
 	test.bool1 = ((data[0] >> 7) & 0x01);
 	test.bool2 = ((data[0] >> 6) & 0x01);
-	test.u8 = ((data[0] & 0x3F) << 2) | ((data[1] >> 6) & 0x03);
-	test.u16 = ((data[1] & 0x3F) << 10) | ((data[2] & 0xFF) << 2) | ((data[3] >> 6) & 0x03);
-	test.u32 = ((data[3] & 0x3F) << 26) | ((data[4] & 0xFF) << 18) | ((data[5] & 0xFF) << 10) | ((data[6] & 0xFF) << 2) | ((data[7] >> 6) & 0x03);
+	test.u8 = ((uint64_t)(data[0] & 0x3F) << 2) | ((data[1] >> 6) & 0x03);
+	test.u16 = ((uint64_t)(data[1] & 0x3F) << 10) | ((uint64_t)(data[2] & 0xFF) << 2) | ((data[3] >> 6) & 0x03);
+	test.u32 = ((uint64_t)(data[3] & 0x3F) << 26) | ((uint64_t)(data[4] & 0xFF) << 18) | ((uint64_t)(data[5] & 0xFF) << 10) | ((uint64_t)(data[6] & 0xFF) << 2) | ((data[7] >> 6) & 0x03);
 	test.valid = true;
 	return test;
 }
