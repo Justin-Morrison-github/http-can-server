@@ -37,16 +37,29 @@ int generate_header(message_t* msg) {
     char upper_case_name[100];
     to_upper_str(snake_case_name, upper_case_name);
     
-    fprintf(fp, "#ifndef %s_H\n", upper_case_name);    
-    fprintf(fp, "#define %s_H\n\n", upper_case_name);    
-    fputs("#include <stdint.h>\n", fp);
-    fputs("#include <stdbool.h>\n", fp);
-    fputs("#include \"../../utils.h\"\n\n", fp);
+    // Header guard + includes
+    fprintf(fp, 
+        "#ifndef %s_H\n"
+        "#define %s_H\n\n"
+        "#include <stdint.h>\n"
+        "#include <stdbool.h>\n"
+        "#include \"../../utils.h\"\n\n", 
+        upper_case_name, 
+        upper_case_name
+    );    
     
-    fprintf(fp, "#define %s_ID 0x%03X\n", upper_case_name, msg->header.id);
-    fprintf(fp, "#define %s_LEN %ld\n", upper_case_name, msg->size_bytes);
-    fprintf(fp, "#define %s_INTERVAL_MS %d\n", upper_case_name, msg->header.interval_ms);
-    fprintf(fp, "#define %s_NAME \"%s\"\n\n", upper_case_name, msg->header.name);
+    // Defines
+    fprintf(fp, 
+        "#define %s_ID 0x%03X\n"
+        "#define %s_LEN %ld\n" 
+        "#define %s_INTERVAL_MS %d\n"
+        "#define %s_NAME \"%s\"\n\n",
+        upper_case_name, msg->header.id,
+        upper_case_name, msg->size_bytes,
+        upper_case_name, msg->header.interval_ms,
+        upper_case_name, msg->header.name
+    );
+    
     fprintf(fp, "typedef struct %s {\n", snake_case_name);
 
     char struct_t_name[110];
