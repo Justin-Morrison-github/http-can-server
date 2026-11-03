@@ -21,6 +21,13 @@ typedef enum HttpMethod {
 char* method_to_str(HttpMethod_t nethod);
 HttpMethod_t str_to_method(char* method);
 
+typedef struct HttpRequestLine
+{
+    char path[PATH_MAX];
+    HttpVersion_t version;
+    HttpMethod_t method;
+} HttpRequestLine_t;
+
 typedef struct HttpRequest
 {
     char path[PATH_MAX];
@@ -31,5 +38,6 @@ typedef struct HttpRequest
     bool valid;
 } HttpRequest_t;
 
+HttpRequestLine_t parse_request_line(char* input);
 HttpRequest_t parse_incoming_message(char* buffer);
 #endif

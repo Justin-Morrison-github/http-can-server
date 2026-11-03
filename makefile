@@ -1,6 +1,6 @@
 .PHONY: server client send_can read_can codec can_node test_can
 server:
-	gcc ./src/http/server.c ./src/http/http.c -o ./build/http/server &&  ./build/http/server
+	gcc ./src/http/server.c ./src/http/http.c ./src/utils/utils.c -o ./build/http/server &&  ./build/http/server
 
 client:
 	gcc ./src/http/client.c -o ./build/http/client &&  ./build/http/client

@@ -12,7 +12,7 @@
 #include "http.h"
 
 int main(int argc, char *argv[]) {
-    printf("Start\n");
+    // printf("Start\n");
     int status = 0;
     int sock_fd;
 
@@ -55,14 +55,14 @@ int main(int argc, char *argv[]) {
         perror("getnameinfo");
         exit(1);
     }
-    printf("Server bound to %s:%s\n", ip, port);
+    // printf("Server bound to %s:%s\n", ip, port);
 
 
     if (listen(sock_fd, 1) < 0) {
         perror("listen error");
         exit(1);
     }
-    printf("Server listening...\n");
+    // printf("Server listening...\n");
 
     struct sockaddr_storage their_addr;
     int addr_size = sizeof(their_addr);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
         perror("accept error");
         exit(1);
     }
-    printf("Server accepted client\n");
+    // printf("Server accepted client\n");
 
     // Read data sent by client
     char buffer[1000] = {"0"};
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     buffer[bytes_read] = '\0';
-    printf("Server recieved %zd bytes\n", bytes_read);
+    // printf("Server recieved %zd bytes\n", bytes_read);
 
     HttpRequest_t request = parse_incoming_message(buffer);
     if (!request.valid){
@@ -104,11 +104,11 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "send couldn't fit all msg bytes in one send: %ld bytes left", request.response_len - bytes_sent);
     }
 
-    printf("Server sent %zd bytes: %s\n", bytes_sent, request.response);
+    // printf("Server sent %zd bytes: %s\n", bytes_sent, request.response);
 
     freeaddrinfo(res); // free the linked list
     close(sock_fd);
     close(accept_fd);
-    printf("End\n");
+    // printf("End\n");
     return 0;
 }
