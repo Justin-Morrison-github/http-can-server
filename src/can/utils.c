@@ -43,7 +43,7 @@ int open_can_socket(char *can_interface)
         close(can_sock_fd);
         return -1;
     }
-    printf("CAN socket bound to vcan0\n");
+    printf("CAN socket bound to %s\n", can_interface);
     return can_sock_fd;
 }
 char* sock_result_str(SockResult_t result) {
@@ -101,7 +101,6 @@ SockResult_t read_from_socket(int fd, can_frame_t* frame) {
         return SOCK_READ_FAIL;
     }  
 
-    printf("Read 0x%03X: %lu bytes\n", frame->can_id, n_bytes);
     return SOCK_OK;
 }
 

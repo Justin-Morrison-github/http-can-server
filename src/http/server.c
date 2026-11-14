@@ -13,56 +13,17 @@
 
 int main(int argc, char *argv[]) {
     // printf("Start\n");
-    int status = 0;
-    int sock_fd;
-
-    struct addrinfo *res;  // will point to the results
-
-    struct addrinfo hints;
-    memset(&hints, 0, sizeof hints);    // make sure the struct is empty
-    hints.ai_family = AF_UNSPEC;        // Don't care about IPv4 vs IPv6
-    hints.ai_socktype = SOCK_STREAM;    // Use TCP
-    hints.ai_flags = AI_PASSIVE;        // Fill in my IP for me
-
-    status = getaddrinfo(NULL, "8001", &hints, &res);
-    if (status < 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
-        exit(1);
-    }
-    
-
-    // Get socket
-    sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    int sock_fd = connect_server();
     if (sock_fd < 0) {
-        perror("socket error");
-        exit(1);
+        fprintf(stderr, "connect_server failed: %d", sock_fd);
+        return 1;
     }
-
-    int opt = 1;
-    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        perror("setsockopt SO_REUSEADDR failed");
-        exit(1);
-    }
-
-    if (bind(sock_fd, res->ai_addr, res->ai_addrlen) < 0) {
-        perror("bind error");
-        exit(1);
-    }
-
-    char ip[NI_MAXHOST];
-    char port[NI_MAXSERV];
-    if (getnameinfo(res->ai_addr, res->ai_addrlen, ip, sizeof(ip), port, sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV) != 0){
-        perror("getnameinfo");
-        exit(1);
-    }
-    // printf("Server bound to %s:%s\n", ip, port);
-
 
     if (listen(sock_fd, 1) < 0) {
         perror("listen error");
         exit(1);
     }
-    // printf("Server listening...\n");
+    printf("Server listening...\n");
 
     struct sockaddr_storage their_addr;
     int addr_size = sizeof(their_addr);
@@ -106,7 +67,6 @@ int main(int argc, char *argv[]) {
 
     // printf("Server sent %zd bytes: %s\n", bytes_sent, request.response);
 
-    freeaddrinfo(res); // free the linked list
     close(sock_fd);
     close(accept_fd);
     // printf("End\n");

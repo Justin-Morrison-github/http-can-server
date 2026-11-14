@@ -4,6 +4,16 @@
 #include <string.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
 
 typedef enum HttpVersion {
     UNKNOWN,
@@ -40,4 +50,7 @@ typedef struct HttpRequest
 
 HttpRequestLine_t parse_request_line(char* input);
 HttpRequest_t parse_incoming_message(char* buffer);
+
+int connect_server();
+int connect_client();
 #endif

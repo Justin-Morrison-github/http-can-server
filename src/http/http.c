@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../utils/utils.h"
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <stdlib.h>
 
 char* version_to_str(HttpVersion_t version) {
     switch (version) {
@@ -108,4 +113,82 @@ HttpRequest_t parse_incoming_message(char* buffer) {
     );
 
     return request;
+}
+
+int connect_server() {
+    struct addrinfo* res = NULL;
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof hints);    // make sure the struct is empty
+    hints.ai_family = AF_UNSPEC;        // Don't care about IPv4 vs IPv6
+    hints.ai_socktype = SOCK_STREAM;    // Use TCP
+    hints.ai_flags = AI_PASSIVE;        // Fill in my IP for me
+
+    int status = getaddrinfo(NULL, "8001", &hints, &res);
+    if (status < 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        exit(1);
+    }
+    
+    // Get socket
+    int sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sock_fd < 0) {
+        perror("socket error");
+        exit(1);
+    }
+
+    int opt = 1;
+    if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt SO_REUSEADDR failed");
+        exit(1);
+    }
+
+    if (bind(sock_fd, res->ai_addr, res->ai_addrlen) < 0) {
+        perror("bind error");
+        exit(1);
+    }
+
+    char ip[NI_MAXHOST];
+    char port[NI_MAXSERV];
+    if (getnameinfo(res->ai_addr, res->ai_addrlen, ip, sizeof(ip), port, sizeof(port), NI_NUMERICHOST | NI_NUMERICSERV) != 0){
+        perror("getnameinfo");
+        exit(1);
+    }
+
+    freeaddrinfo(res); // free the linked list
+
+    printf("Server bound to %s:%s\n", ip, port);
+    return sock_fd;
+}
+
+int connect_client() {
+    struct addrinfo* res = NULL;
+
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof hints);    // make sure the struct is empty
+    hints.ai_family = AF_UNSPEC;        // Don't care about IPv4 vs IPv6
+    hints.ai_socktype = SOCK_STREAM;    // Use TCP
+    hints.ai_flags = AI_PASSIVE;        // Fill in my IP for me
+
+    int status = getaddrinfo(NULL, "8001", &hints, &res);
+    if (status < 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
+        exit(1);
+    }
+
+    // Get socket
+    int sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sock_fd < 0) {
+        perror("socket error");
+        exit(3);
+    }
+    printf("Got socket\n");
+
+    if (connect(sock_fd, res->ai_addr, res->ai_addrlen) < 0) {
+        perror("bind error");
+        exit(4);
+    }
+
+    freeaddrinfo(res); // free the linked list
+
+    return sock_fd;
 }
