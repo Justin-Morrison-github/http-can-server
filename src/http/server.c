@@ -50,20 +50,20 @@ int main(int argc, char *argv[]) {
     buffer[bytes_read] = '\0';
     // printf("Server recieved %zd bytes\n", bytes_read);
 
-    HttpRequest_t request = parse_incoming_message(buffer);
-    if (!request.valid){
-        fprintf(stderr, "incoming message was not valid");
-        exit(1);
-    }
+    // HttpRequest_t request = parse_incoming_message(buffer);
+    // if (!request.valid){
+    //     fprintf(stderr, "incoming message was not valid");
+    //     exit(1);
+    // }
     
 
-    ssize_t bytes_sent = send(accept_fd, request.response, request.response_len, 0);
-    if (bytes_sent < 0)     {
-        perror("send error");
-        exit(1);
-    } else if (bytes_sent != request.response_len) {
-        fprintf(stderr, "send couldn't fit all msg bytes in one send: %ld bytes left", request.response_len - bytes_sent);
-    }
+    // ssize_t bytes_sent = send(accept_fd, request.response, request.response_len, 0);
+    // if (bytes_sent < 0)     {
+    //     perror("send error");
+    //     exit(1);
+    // } else if (bytes_sent != request.response_len) {
+    //     fprintf(stderr, "send couldn't fit all msg bytes in one send: %ld bytes left", request.response_len - bytes_sent);
+    // }
 
     // printf("Server sent %zd bytes: %s\n", bytes_sent, request.response);
 

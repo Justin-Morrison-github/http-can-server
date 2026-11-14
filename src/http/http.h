@@ -53,4 +53,15 @@ HttpRequest_t parse_incoming_message(char* buffer);
 
 int connect_server();
 int connect_client();
+
+typedef enum HttpCANMethod {
+    CAN_GET,
+    CAN_SEND
+} HttpCANMethod_t;
+
+typedef struct HttpCANRequest {
+    HttpCANMethod_t method;     // Rx or Tx
+    uint32_t can_id;            // ID of message to perfom "method" on
+} HttpCANRequest_t;
+
 #endif

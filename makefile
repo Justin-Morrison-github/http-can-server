@@ -16,3 +16,6 @@ codec:
 
 test_can:
 	gcc -g ./src/can/test_can.c  ./src/can/utils.c -o ./build/can/test_can && ./build/can/test_can
+
+bridge:
+	gcc ./src/bridge/bridge.c ./src/can/utils.c ./src/http/http.c ./src/can/msg/power_status/power_status.c -o ./build/bridge/bridge && ./build/bridge/bridge
