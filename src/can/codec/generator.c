@@ -347,10 +347,13 @@ void str_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_cas
 
     fputs("}\", ", fp);
     for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        Type_t type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
+        const bool is_bool = (type == TYPE_BOOL);
+        
         if (signal->next == NULL) {
-            fprintf(fp, "msg.%s", signal->name);
+            fprintf(fp, is_bool ? "str_bool(msg.%s)" : "msg.%s", signal->name);
         } else {
-            fprintf(fp, "msg.%s, ", signal->name);
+            fprintf(fp, is_bool ? "str_bool(msg.%s), " : "msg.%s, ", signal->name);
         }
     }
     fputs(");\n", fp);
