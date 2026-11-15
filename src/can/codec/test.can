@@ -1,20 +1,20 @@
 <MESSAGES
-	<MESSAGE: TestUnsigned 0x123 @0
+	<MESSAGE: TestUnsigned 0x123 @1000
 		flag:    		1 | +
 		u8:        		8 | +
 		u16:        	16 | +
 		u32:        	32 | +
 	MESSAGE>
-	<MESSAGE: TestSigned 0x456 @0
+	<MESSAGE: TestSigned 0x456 @1000
 		flag:    		1 | -
 		i8:       		8 | -
 		i16:        	16 | -
 		i32:        	32 | -
 	MESSAGE>
-	<MESSAGE: TestU64 0x064 @0
+	<MESSAGE: TestU64 0x064 @1000
 		u64:        	64 | +
 	MESSAGE>
-	<MESSAGE: TestI64 0x640 @0
+	<MESSAGE: TestI64 0x640 @1000
 		i64:        	64 | -
 	MESSAGE>
 MESSAGES>

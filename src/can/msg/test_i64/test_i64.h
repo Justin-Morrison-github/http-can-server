@@ -7,7 +7,7 @@
 
 #define TEST_I64_ID 0x640
 #define TEST_I64_LEN 8
-#define TEST_I64_INTERVAL_MS 0
+#define TEST_I64_INTERVAL_MS 1000
 #define TEST_I64_NAME "TestI64"
 #define TEST_I64_STR_LEN 38
 

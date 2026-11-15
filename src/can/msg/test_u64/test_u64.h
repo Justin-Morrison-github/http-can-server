@@ -7,7 +7,7 @@
 
 #define TEST_U64_ID 0x064
 #define TEST_U64_LEN 8
-#define TEST_U64_INTERVAL_MS 0
+#define TEST_U64_INTERVAL_MS 1000
 #define TEST_U64_NAME "TestU64"
 #define TEST_U64_STR_LEN 38
 
