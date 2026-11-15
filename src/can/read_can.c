@@ -34,7 +34,7 @@ int main(void) {
 
     logger_t* logger = create_logger("read_can", E_BOTH);
     if (logger == NULL) {
-        LOG_ERR(logger, "Error creating logger\n");
+        LOG_ERR(logger, "Error creating logger");
         exit(1);
     }
     LOG_INFO(logger, "Starting");
@@ -60,7 +60,7 @@ int main(void) {
         if (frame_in.can_id == TEST_U64_ID) {
             test_u64_t test_u64 = can_to_test_u64(&frame_in);
             if (!test_u64.valid) {
-                LOG_INFO(logger, "error decoding test_u64\n");
+                LOG_INFO(logger, "error decoding test_u64");
                 exit(1);
             }
             

@@ -70,21 +70,21 @@ int main(void) {
 
     logger_t* logger = create_logger("bridge", E_BOTH);
     if (logger == NULL) {
-        LOG_ERR(logger, "Error creating logger\n");
+        LOG_ERR(logger, "Error creating logger");
         exit(1);
     }
     
 
     int can_sock_fd = open_can_socket("vcan0");
     if (can_sock_fd < 0) {
-        LOG_ERR(logger, "CAN socket fd is invalid\n");
+        LOG_ERR(logger, "CAN socket fd is invalid");
         return 1;
     }
 
     int http_sock_fd = connect_server();
     if (http_sock_fd < 0)
     {
-        LOG_ERR(logger, "HTTP socket fd is invalid\n");
+        LOG_ERR(logger, "HTTP socket fd is invalid");
         return 1;
     }
 
@@ -93,7 +93,7 @@ int main(void) {
         exit(1);
     }
 
-    LOG_INFO(logger, "Server listening...\n");
+    LOG_INFO(logger, "Server listening...");
     
 
     struct pollfd fds[NUM_SOCKETS];
@@ -113,11 +113,11 @@ int main(void) {
         }
 
         if (fds[CAN_SOCKET].revents & POLLERR) {
-            LOG_ERR(logger, "CAN socket error: POLLERR\n");
+            LOG_ERR(logger, "CAN socket error: POLLERR");
         }
 
         if (fds[HTTP_SOCKET].revents & POLLERR) {
-            LOG_ERR(logger, "HTTP socket error: POLLERR\n");
+            LOG_ERR(logger, "HTTP socket error: POLLERR");
         }
         
         if (fds[CAN_SOCKET].revents & POLLIN) {
@@ -129,7 +129,7 @@ int main(void) {
                 // LOG_INFO(logger, "CAN frame recieved\n");
                 
                 if (in_frame.can_id & CAN_EFF_FLAG) { // Only handle standard (11-bit ID) frames for now
-                    LOG_INFO(logger, "Error: extended frame\n");
+                    LOG_INFO(logger, "Error: extended frame");
                 } else {
                     add_rx_can_msg(in_frame);
                 }
@@ -142,7 +142,7 @@ int main(void) {
                 LOG_ERR(logger, "accept failed");
                 break;
             }  else {
-                LOG_INFO(logger, "New Client\n");
+                LOG_INFO(logger, "New Client");
                 // Parse HTTP request
                 // Lets assume a client requested the telemetry of TEST_U64 (0x444)
                 HttpCANRequest_t can_request;
@@ -151,7 +151,7 @@ int main(void) {
 
                 can_message_t latest = contexts[can_request.can_id].msg;
                 test_u64_t test_u64 = can_to_test_u64(&latest.frame);
-                LOG_INFO(logger, "Count %ld : %lld.%09ld\n", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
+                LOG_INFO(logger, "Count %ld : %lld.%09ld", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
             }
         }
     }

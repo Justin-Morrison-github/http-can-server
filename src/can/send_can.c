@@ -84,7 +84,7 @@ int main(void) {
 
             //     if (ack_frame.can_id == CAN_ACK_ID) {
             //         can_ack_t can_ack = can_to_ack(ack_frame);
-            //         LOG_INFO(logger, "Received ACK: 0x%03X\n", can_ack.can_id);
+            //         LOG_INFO(logger, "Received ACK: 0x%03X", can_ack.can_id);
             //         ack_received = true;
             //     }
             // }
