@@ -21,8 +21,6 @@ int main(void) {
         exit(1);
     }
 
-    LOG_INFO(&logger, "Info message");
-
     int can_sock_fd = open_can_socket("vcan0");
     if (can_sock_fd < 0) {
         LOG_ERR(&logger, "Error opening CAN socket");
