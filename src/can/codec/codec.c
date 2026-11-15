@@ -248,11 +248,25 @@ int main(void) {
     }
     
     //Prints all messages and signals
-    for (message_t* curr = msg_dummy->next; curr != NULL; curr = curr->next) {
-        printf("%s : 0x%03X\n", curr->header.name, curr->header.id);
+    for (message_t* msg = msg_dummy->next; msg != NULL; msg = msg->next) {
+        printf("%s : 0x%03X\n", msg->header.name, msg->header.id);
 
-        int result = generate_header(curr);
-        result = generate_source(curr);
+        if (msg->num_signals == 0) {
+            fprintf(stderr, "codec error: Message (%s) has 0 signals", msg->header.name);
+            exit(1);
+        }
+        
+        int result = generate_header(msg);
+        if (result != 0) {
+            fprintf(stderr, "generate_header error: %d", result);
+            exit(1);
+        }
+        
+        result = generate_source(msg);
+        if (result != 0) {
+            fprintf(stderr, "generate_source error: %d", result);
+            exit(1);
+        }
     }
     
 
