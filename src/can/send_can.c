@@ -12,10 +12,21 @@
 
 #include "utils.h"
 #include "msg/power_status/power_status.h"
+#include "../logger/logger.h"
+
 
 int main(void) {
+    log_context_t logger = create_logger("send_can", E_BOTH);
+    if (logger.index == SIZE_MAX) {
+        LOG_ERR(&logger, "Error creating logger\n");
+        exit(1);
+    }
+
+    LOG_INFO(&logger, "Info message");
+
     int can_sock_fd = open_can_socket("vcan0");
     if (can_sock_fd < 0) {
+        LOG_ERR(&logger, "Error opening CAN socket");
         exit(1);
     }
     
@@ -25,10 +36,10 @@ int main(void) {
     power_status.status = 3;
     power_status.power_on = true;
     power_status.valid = true;
-    print_power_status(power_status);
+    // print_power_status(power_status);
 
     can_frame_t frame = power_status_to_can(&power_status);
-    printf("Data to send: [0x%02X, 0x%02X]\n", frame.data[0], frame.data[1]);
+    LOG_INFO(&logger, "Data to send: [0x%02X, 0x%02X]", frame.data[0], frame.data[1]);
     uint64_t last_send_time = 0;
 
     while (1) {
@@ -41,9 +52,11 @@ int main(void) {
                 fprintf(stderr, "write_to_socket failed: %s", sock_result_str(result));
                 exit(1);
             }
+            LOG_INFO(&logger, "Sent");
+
             last_send_time = now;
             power_status.percent_charge++;
-            print_power_status(power_status);
+            // print_power_status(power_status);
 
             // bool ack_received = false;
             // can_frame_t ack_frame; 
