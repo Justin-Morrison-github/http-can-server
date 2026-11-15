@@ -9,6 +9,7 @@
 #define MOTOR_CONTROL_STATUS_LEN 3
 #define MOTOR_CONTROL_STATUS_INTERVAL_MS 10
 #define MOTOR_CONTROL_STATUS_NAME "MotorControlStatus"
+#define MOTOR_CONTROL_STATUS_STR_LEN 62
 
 typedef struct motor_control_status {
 	int16_t speed_ms;
@@ -19,5 +20,6 @@ typedef struct motor_control_status {
 can_frame_t motor_control_status_to_can(const motor_control_status_t* msg);
 motor_control_status_t can_to_motor_control_status(const can_frame_t* frame);
 void print_motor_control_status(motor_control_status_t msg);
+bool motor_control_status_to_str(motor_control_status_t msg, char out[MOTOR_CONTROL_STATUS_STR_LEN]);
 
 #endif

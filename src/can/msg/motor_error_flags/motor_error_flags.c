@@ -1,6 +1,6 @@
 #include "motor_error_flags.h"
-
 #include <stddef.h>
+
 can_frame_t motor_error_flags_to_can(const motor_error_flags_t* msg) {
 	can_frame_t frame = {0};
 	if(msg == NULL) {
@@ -17,6 +17,7 @@ can_frame_t motor_error_flags_to_can(const motor_error_flags_t* msg) {
 	frame.data[0] |= (uint8_t) ((msg->overheating & 0x01) << 3);
 	return frame;
 }
+
 motor_error_flags_t can_to_motor_error_flags(const can_frame_t* frame) {
 	motor_error_flags_t motor_error_flags;
 	if(frame == NULL || frame->data == NULL || frame->len != MOTOR_ERROR_FLAGS_LEN) {
@@ -33,5 +34,11 @@ motor_error_flags_t can_to_motor_error_flags(const can_frame_t* frame) {
 	motor_error_flags.valid = true;
 	return motor_error_flags;
 }
+
 void print_motor_error_flags(motor_error_flags_t msg) {
+}
+
+bool motor_error_flags_to_str(motor_error_flags_t msg, char out[MOTOR_ERROR_FLAGS_STR_LEN]) {
+	int written = snprintf(out, "MOTOR_ERROR_FLAGS: {over_voltage: %s, over_current: %s, under_voltage: %s, under_current: %s, overheating: %s}", msg.over_voltage, msg.over_current, msg.under_voltage, msg.under_current, msg.overheating);
+	return written == strlen(out);
 }

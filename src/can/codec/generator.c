@@ -156,12 +156,34 @@ int generate_header(const message_t* msg) {
         "#define %s_ID 0x%03X\n"
         "#define %s_LEN %ld\n" 
         "#define %s_INTERVAL_MS %d\n"
-        "#define %s_NAME \"%s\"\n\n",
+        "#define %s_NAME \"%s\"\n",
         upper_case_name, msg->header.id,
         upper_case_name, msg->size_bytes,
         upper_case_name, msg->header.interval_ms,
         upper_case_name, msg->header.name
     );
+
+    int msg_str_len = 0;
+    // A line like this:
+    // snprintf(out, "TEMPERATURE_SENSOR: {time_ms: %lu, temp_c: %d}", msg.time_ms, msg.temp_c);
+
+    // would turn into (at worst)
+    // "TEMPERATURE_SENSOR: {time_ms: 18446744073709551615, temp_c: -128}"
+    
+    msg_str_len += strlen(upper_case_name);
+    msg_str_len += 5; // Account for ":", space, opening "{", closing "}", and null terminator
+
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        msg_str_len += strlen(signal->name); // Account for message name
+
+        Type_t type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
+        msg_str_len += type_str_max_len(type); // Account for max size of type
+    }
+
+    msg_str_len += 2 * (msg->num_signals);      // Account for the ":" and the space before each value
+    msg_str_len += 2 * (msg->num_signals - 1);  // Account for the "," and the space after each value but the last
+
+    fprintf(fp, "#define %s_STR_LEN %d\n\n", upper_case_name, msg_str_len);
     
     fprintf(fp, "typedef struct %s {\n", snake_case_name);
 
@@ -176,7 +198,8 @@ int generate_header(const message_t* msg) {
     fprintf(fp, "} %s;\n\n", struct_t_name);
     fprintf(fp, "can_frame_t %s_to_can(const %s* msg);\n", snake_case_name, struct_t_name);
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame);\n", struct_t_name, snake_case_name);
-    fprintf(fp, "void print_%s(%s msg);\n\n", snake_case_name, struct_t_name);
+    fprintf(fp, "void print_%s(%s msg);\n", snake_case_name, struct_t_name);
+    fprintf(fp, "bool %s_to_str(%s msg, char out[%s_STR_LEN]);\n\n", snake_case_name, struct_t_name, upper_case_name);
 
     fputs("#endif\n", fp);
     return 0;
@@ -242,7 +265,7 @@ void can_to_msg_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* sn
     fprintf(fp, "\t%s.valid = true;\n", snake_case_name);
 
     fprintf(fp, "\treturn %s;\n", snake_case_name);
-    fputs("}\n", fp);
+    fputs("}\n\n", fp);
 
 }
 
@@ -298,11 +321,40 @@ void msg_to_can_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* sn
     fputs("\treturn frame;\n", fp);
 
     //function end
-    fputs("}\n", fp);
+    fputs("}\n\n", fp);
 }
 
 void print_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "void print_%s(%s msg) {\n", snake_case_name, struct_t_name);
+    fputs("}\n\n", fp);
+}
+
+void str_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
+    // int written = snprintf(out, POWER_STATUS_STR_LEN, "%s: {percent_charge: %d, status: %d, power_on: %s}", POWER_STATUS_NAME, status.percent_charge, status.status, str_bool(status.power_on));
+    // printf("%s\n", out);
+    // return written == strlen(out);
+    fprintf(fp, "bool %s_to_str(%s msg, char out[%s_STR_LEN]) {\n", snake_case_name, struct_t_name, upper_case_name);
+
+    fprintf(fp, "\tint written = snprintf(out, \"%s: {", upper_case_name);
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        Type_t type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
+        if (signal->next == NULL) {
+            fprintf(fp, "%s: %s", signal->name, type_format_specifier(type));
+        } else {
+            fprintf(fp, "%s: %s, ", signal->name, type_format_specifier(type));
+        }
+    }
+
+    fputs("}\", ", fp);
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        if (signal->next == NULL) {
+            fprintf(fp, "msg.%s", signal->name);
+        } else {
+            fprintf(fp, "msg.%s, ", signal->name);
+        }
+    }
+    fputs(");\n", fp);
+    fputs("\treturn written == strlen(out);\n", fp);
     fputs("}\n", fp);
 }
 
@@ -333,8 +385,8 @@ int generate_source(const message_t* msg) {
     char upper_case_name[100];
     to_upper_str(snake_case_name, upper_case_name);
     
-    fprintf(fp, "#include \"%s.h\"\n\n", snake_case_name);
-    fputs("#include <stddef.h>\n", fp);
+    fprintf(fp, "#include \"%s.h\"\n", snake_case_name);
+    fputs("#include <stddef.h>\n\n", fp);
 
     char struct_t_name[110];
     snprintf(struct_t_name, 110, "%s_t", snake_case_name);
@@ -344,6 +396,8 @@ int generate_source(const message_t* msg) {
     can_to_msg_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
 
     print_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
+
+    str_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
 
     return 0;
 }

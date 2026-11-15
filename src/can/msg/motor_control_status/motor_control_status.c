@@ -1,6 +1,6 @@
 #include "motor_control_status.h"
-
 #include <stddef.h>
+
 can_frame_t motor_control_status_to_can(const motor_control_status_t* msg) {
 	can_frame_t frame = {0};
 	if(msg == NULL) {
@@ -15,6 +15,7 @@ can_frame_t motor_control_status_to_can(const motor_control_status_t* msg) {
 	frame.data[2] |= (uint8_t) (msg->charge_percent & 0xFF);
 	return frame;
 }
+
 motor_control_status_t can_to_motor_control_status(const can_frame_t* frame) {
 	motor_control_status_t motor_control_status;
 	if(frame == NULL || frame->data == NULL || frame->len != MOTOR_CONTROL_STATUS_LEN) {
@@ -28,5 +29,11 @@ motor_control_status_t can_to_motor_control_status(const can_frame_t* frame) {
 	motor_control_status.valid = true;
 	return motor_control_status;
 }
+
 void print_motor_control_status(motor_control_status_t msg) {
+}
+
+bool motor_control_status_to_str(motor_control_status_t msg, char out[MOTOR_CONTROL_STATUS_STR_LEN]) {
+	int written = snprintf(out, "MOTOR_CONTROL_STATUS: {speed_ms: %d, charge_percent: %u}", msg.speed_ms, msg.charge_percent);
+	return written == strlen(out);
 }

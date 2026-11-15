@@ -1,6 +1,6 @@
 #include "test.h"
-
 #include <stddef.h>
+
 can_frame_t test_to_can(const test_t* msg) {
 	can_frame_t frame = {0};
 	if(msg == NULL) {
@@ -24,6 +24,7 @@ can_frame_t test_to_can(const test_t* msg) {
 	frame.data[7] |= (uint8_t) ((msg->u32 & 0x03) << 6);
 	return frame;
 }
+
 test_t can_to_test(const can_frame_t* frame) {
 	test_t test;
 	if(frame == NULL || frame->data == NULL || frame->len != TEST_LEN) {
@@ -40,5 +41,11 @@ test_t can_to_test(const can_frame_t* frame) {
 	test.valid = true;
 	return test;
 }
+
 void print_test(test_t msg) {
+}
+
+bool test_to_str(test_t msg, char out[TEST_STR_LEN]) {
+	int written = snprintf(out, "TEST: {bool1: %s, bool2: %s, u8: %u, u16: %u, u32: %u}", msg.bool1, msg.bool2, msg.u8, msg.u16, msg.u32);
+	return written == strlen(out);
 }

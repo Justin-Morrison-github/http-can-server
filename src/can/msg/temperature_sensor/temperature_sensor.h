@@ -9,6 +9,7 @@
 #define TEMPERATURE_SENSOR_LEN 9
 #define TEMPERATURE_SENSOR_INTERVAL_MS 100
 #define TEMPERATURE_SENSOR_NAME "TemperatureSensor"
+#define TEMPERATURE_SENSOR_STR_LEN 66
 
 typedef struct temperature_sensor {
 	uint64_t time_ms;
@@ -19,5 +20,6 @@ typedef struct temperature_sensor {
 can_frame_t temperature_sensor_to_can(const temperature_sensor_t* msg);
 temperature_sensor_t can_to_temperature_sensor(const can_frame_t* frame);
 void print_temperature_sensor(temperature_sensor_t msg);
+bool temperature_sensor_to_str(temperature_sensor_t msg, char out[TEMPERATURE_SENSOR_STR_LEN]);
 
 #endif

@@ -1,6 +1,6 @@
 #include "temperature_sensor.h"
-
 #include <stddef.h>
+
 can_frame_t temperature_sensor_to_can(const temperature_sensor_t* msg) {
 	can_frame_t frame = {0};
 	if(msg == NULL) {
@@ -21,6 +21,7 @@ can_frame_t temperature_sensor_to_can(const temperature_sensor_t* msg) {
 	frame.data[8] |= (uint8_t) (msg->temp_c & 0xFF);
 	return frame;
 }
+
 temperature_sensor_t can_to_temperature_sensor(const can_frame_t* frame) {
 	temperature_sensor_t temperature_sensor;
 	if(frame == NULL || frame->data == NULL || frame->len != TEMPERATURE_SENSOR_LEN) {
@@ -34,5 +35,11 @@ temperature_sensor_t can_to_temperature_sensor(const can_frame_t* frame) {
 	temperature_sensor.valid = true;
 	return temperature_sensor;
 }
+
 void print_temperature_sensor(temperature_sensor_t msg) {
+}
+
+bool temperature_sensor_to_str(temperature_sensor_t msg, char out[TEMPERATURE_SENSOR_STR_LEN]) {
+	int written = snprintf(out, "TEMPERATURE_SENSOR: {time_ms: %lu, temp_c: %d}", msg.time_ms, msg.temp_c);
+	return written == strlen(out);
 }

@@ -9,6 +9,7 @@
 #define MOTOR_ERROR_FLAGS_LEN 1
 #define MOTOR_ERROR_FLAGS_INTERVAL_MS 1000
 #define MOTOR_ERROR_FLAGS_NAME "MotorErrorFlags"
+#define MOTOR_ERROR_FLAGS_STR_LEN 126
 
 typedef struct motor_error_flags {
 	bool over_voltage;
@@ -22,5 +23,6 @@ typedef struct motor_error_flags {
 can_frame_t motor_error_flags_to_can(const motor_error_flags_t* msg);
 motor_error_flags_t can_to_motor_error_flags(const can_frame_t* frame);
 void print_motor_error_flags(motor_error_flags_t msg);
+bool motor_error_flags_to_str(motor_error_flags_t msg, char out[MOTOR_ERROR_FLAGS_STR_LEN]);
 
 #endif

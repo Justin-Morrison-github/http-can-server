@@ -9,6 +9,7 @@
 #define TEST_LEN 8
 #define TEST_INTERVAL_MS 0
 #define TEST_NAME "Test"
+#define TEST_STR_LEN 73
 
 typedef struct test {
 	bool bool1;
@@ -22,5 +23,6 @@ typedef struct test {
 can_frame_t test_to_can(const test_t* msg);
 test_t can_to_test(const can_frame_t* frame);
 void print_test(test_t msg);
+bool test_to_str(test_t msg, char out[TEST_STR_LEN]);
 
 #endif
