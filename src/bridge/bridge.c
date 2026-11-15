@@ -32,11 +32,16 @@ typedef struct can_message {
     can_frame_t frame;
 } can_message_t;
 
-can_message_t messages[STD_CAN_ID_COUNT];
+typedef struct can_context {
+    can_message_t msg;
+    void* (*decoder)(const can_frame_t* frame);
+} can_context_t;
+
+static can_context_t contexts[STD_CAN_ID_COUNT];
 
 bool add_rx_can_msg(can_frame_t frame) {
     size_t id = frame.can_id & CAN_SFF_MASK;
-    can_message_t* msg = &messages[id];
+    can_message_t* msg = &contexts[id].msg;
     
     struct timespec now;
     if (clock_gettime(CLOCK_MONOTONIC, &now) != 0) {
@@ -50,7 +55,19 @@ bool add_rx_can_msg(can_frame_t frame) {
     return true;
 }
 
+void* no_op(const can_frame_t* frame) {}
+
+void init_contexts() {
+    for (size_t i = 0; i < STD_CAN_ID_COUNT; i++) {
+        contexts[i].decoder = no_op;
+    }
+
+    contexts[TEST_U64_ID].decoder = can_to_test_u64;
+}
+
 int main(void) {
+    init_contexts();
+
     logger_t* logger = create_logger("bridge", E_BOTH);
     if (logger == NULL) {
         LOG_ERR(logger, "Error creating logger\n");
@@ -132,7 +149,7 @@ int main(void) {
                 can_request.can_id = TEST_U64_ID;
                 can_request.method = CAN_GET;
 
-                can_message_t latest = messages[can_request.can_id];
+                can_message_t latest = contexts[can_request.can_id].msg;
                 test_u64_t test_u64 = can_to_test_u64(&latest.frame);
                 LOG_INFO(logger, "Count %ld : %lld.%09ld\n", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
             }
