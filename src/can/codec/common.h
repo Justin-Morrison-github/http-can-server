@@ -31,9 +31,8 @@ typedef struct message {
 } message_t;
 
 
-void camel_to_snake_case(char* name, char* output);
-void to_upper_str(char* input, char* output);
-char* type_from_num_bits_and_sign(size_t num_bits, bool is_signed);
+void camel_to_snake_case(const char* name, char* output);
+void to_upper_str(const char* input, char* output);
 char* byte_mask_from_num_bits(size_t num_bits);
 
 #endif

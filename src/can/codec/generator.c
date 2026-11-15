@@ -7,8 +7,111 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include "common.h"
+#include "generator.h"
+#include <inttypes.h>
 
-int generate_header(message_t* msg) { 
+Type_t type_from_num_bits_and_sign(size_t num_bits, bool is_signed) {
+    
+    if (num_bits < 1 || num_bits > 64) {
+        fprintf(stderr, "invalid num_bits for type");
+        return TYPE_UNKNOWN;
+    }
+    
+    if (num_bits == 1) {
+        return TYPE_BOOL;
+    }
+
+    if (is_signed) {
+        if (num_bits <= 8) {
+            return TYPE_I8;
+        } else if (num_bits <= 16) {
+            return TYPE_I16;
+        } else if (num_bits <= 32) {
+            return TYPE_I32;
+        } else if (num_bits <= 64) {
+            return TYPE_I64;
+        }
+    } else {
+        if (num_bits <= 8) {
+            return TYPE_U8;
+        } else if (num_bits <= 16) {
+            return TYPE_U16;
+        } else if (num_bits <= 32) {
+            return TYPE_U32;
+        } else if (num_bits <= 64) {
+            return TYPE_U64;
+        }
+    }
+
+    return TYPE_UNKNOWN;
+}
+
+char* type_str(Type_t type) {
+    switch (type) {
+        case TYPE_BOOL: return "bool";
+        case TYPE_U8: return "uint8_t";
+        case TYPE_U16: return "uint16_t";
+        case TYPE_U32: return "uint32_t";
+        case TYPE_U64: return "uint64_t";
+        case TYPE_I8: return "int8_t";
+        case TYPE_I16: return "int16_t";
+        case TYPE_I32: return "int32_t";
+        case TYPE_I64: return "int64_t";
+        case TYPE_UNKNOWN: // Purposeful fallthrough
+        default: return "?";
+    }
+}
+
+char* type_format_specifier_actual(Type_t type) {
+    switch (type) {
+        case TYPE_BOOL: return "%s";        // Because str_bool is used
+        case TYPE_U8: return "%\" PRIu8 \"";
+        case TYPE_U16: return "%\" PRIu16 \"";
+        case TYPE_U32: return "%\" PRIu32 \"";
+        case TYPE_U64: return "%\" PRIu64 \"";
+        case TYPE_I8: return "%\" PRId8 \"";
+        case TYPE_I16: return "%\" PRId16 \"";
+        case TYPE_I32: return "%\" PRId32 \"";
+        case TYPE_I64: return "%\" PRId64 \"";
+        case TYPE_UNKNOWN: // Purposeful fallthrough
+        default: return "?";
+    }
+}
+
+char* type_format_specifier(Type_t type) {
+    switch (type) {
+        case TYPE_BOOL: return "%s";        // Because str_bool is used
+        case TYPE_U8: return "%u";
+        case TYPE_U16: return "%u";
+        case TYPE_U32: return "%u";
+        case TYPE_U64: return "%lu";
+        case TYPE_I8: return "%d";
+        case TYPE_I16: return "%d";
+        case TYPE_I32: return "%d";
+        case TYPE_I64: return "%ld";
+        case TYPE_UNKNOWN: // Purposeful fallthrough
+        default: return "%s";
+    }
+}
+
+// The maximum number of string characters needed to encode each type
+int type_str_max_len(Type_t type) {
+    switch (type) {
+        case TYPE_BOOL: return 5; // For "False"
+        case TYPE_U8: return 3;
+        case TYPE_U16: return 5;
+        case TYPE_U32: return 10;
+        case TYPE_U64: return 20;
+        case TYPE_I8: return 4;
+        case TYPE_I16: return 6;
+        case TYPE_I32: return 11;
+        case TYPE_I64: return 20;
+        case TYPE_UNKNOWN: // Purposeful fallthrough
+        default: return 1; // For the '?'
+    }
+}
+
+int generate_header(const message_t* msg) { 
     char snake_case_name[100];
     camel_to_snake_case(msg->header.name, snake_case_name);
     
@@ -65,9 +168,9 @@ int generate_header(message_t* msg) {
     char struct_t_name[110];
     snprintf(struct_t_name, 110, "%s_t", snake_case_name);
 
-    for (signal_t* msg_sig = msg->signals->next; msg_sig != NULL; msg_sig = msg_sig->next) {
-        char* type = type_from_num_bits_and_sign(msg_sig->num_bits, msg_sig->sign);
-        fprintf(fp, "\t%s %s;\n", type, msg_sig->name);        
+    for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
+        Type_t type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
+        fprintf(fp, "\t%s %s;\n", type_str(type), signal->name);        
     }
     fputs("\tbool valid;  // Not included on wire\n", fp);        
     fprintf(fp, "} %s;\n\n", struct_t_name);
@@ -85,7 +188,7 @@ int generate_header(message_t* msg) {
     _a < _b ? _a : _b;             \
 })
 
-void can_to_msg_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
+void can_to_msg_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame) {\n", struct_t_name, snake_case_name);
     fprintf(fp, "\t%s %s;\n", struct_t_name, snake_case_name);
     fprintf(fp, "\tif(frame == NULL || frame->data == NULL || frame->len != %s_LEN) {\n", upper_case_name);
@@ -143,7 +246,7 @@ void can_to_msg_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_ca
 
 }
 
-void msg_to_can_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
+void msg_to_can_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "can_frame_t %s_to_can(const %s* msg) {\n", snake_case_name, struct_t_name);
     fputs("\tcan_frame_t frame = {0};\n", fp);
     fputs("\tif(msg == NULL) {\n", fp);
@@ -198,12 +301,12 @@ void msg_to_can_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_ca
     fputs("}\n", fp);
 }
 
-void print_fn(FILE* fp, message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
+void print_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
     fprintf(fp, "void print_%s(%s msg) {\n", snake_case_name, struct_t_name);
     fputs("}\n", fp);
 }
 
-int generate_source(message_t* msg) { 
+int generate_source(const message_t* msg) { 
     char snake_case_name[100];
     camel_to_snake_case(msg->header.name, snake_case_name);
     
