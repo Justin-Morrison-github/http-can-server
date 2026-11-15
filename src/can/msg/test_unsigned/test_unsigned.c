@@ -49,3 +49,8 @@ bool test_unsigned_to_str(test_unsigned_t msg, char out[TEST_UNSIGNED_STR_LEN]) 
 	int written = snprintf(out, TEST_UNSIGNED_STR_LEN, "TEST_UNSIGNED: {flag: %s, u8: %u, u16: %u, u32: %u}", str_bool(msg.flag), msg.u8, msg.u16, msg.u32);
 	return written == strlen(out);
 }
+
+bool can_to_test_unsigned_str(const can_frame_t* frame, char out[TEST_UNSIGNED_STR_LEN]) {
+	return test_unsigned_to_str(can_to_test_unsigned(frame), out);
+}
+

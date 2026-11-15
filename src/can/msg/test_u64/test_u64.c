@@ -43,3 +43,8 @@ bool test_u64_to_str(test_u64_t msg, char out[TEST_U64_STR_LEN]) {
 	int written = snprintf(out, TEST_U64_STR_LEN, "TEST_U64: {u64: %lu}", msg.u64);
 	return written == strlen(out);
 }
+
+bool can_to_test_u64_str(const can_frame_t* frame, char out[TEST_U64_STR_LEN]) {
+	return test_u64_to_str(can_to_test_u64(frame), out);
+}
+

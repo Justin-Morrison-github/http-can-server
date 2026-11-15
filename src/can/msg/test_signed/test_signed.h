@@ -23,5 +23,6 @@ can_frame_t test_signed_to_can(const test_signed_t* msg);
 test_signed_t can_to_test_signed(const can_frame_t* frame);
 void print_test_signed(test_signed_t msg);
 bool test_signed_to_str(test_signed_t msg, char out[TEST_SIGNED_STR_LEN]);
+bool can_to_test_signed_str(const can_frame_t* frame, char out[TEST_SIGNED_STR_LEN]);
 
 #endif

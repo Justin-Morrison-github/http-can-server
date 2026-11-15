@@ -23,5 +23,6 @@ can_frame_t test_unsigned_to_can(const test_unsigned_t* msg);
 test_unsigned_t can_to_test_unsigned(const can_frame_t* frame);
 void print_test_unsigned(test_unsigned_t msg);
 bool test_unsigned_to_str(test_unsigned_t msg, char out[TEST_UNSIGNED_STR_LEN]);
+bool can_to_test_unsigned_str(const can_frame_t* frame, char out[TEST_UNSIGNED_STR_LEN]);
 
 #endif

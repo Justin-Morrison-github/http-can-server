@@ -49,3 +49,8 @@ bool test_signed_to_str(test_signed_t msg, char out[TEST_SIGNED_STR_LEN]) {
 	int written = snprintf(out, TEST_SIGNED_STR_LEN, "TEST_SIGNED: {flag: %s, i8: %d, i16: %d, i32: %d}", str_bool(msg.flag), msg.i8, msg.i16, msg.i32);
 	return written == strlen(out);
 }
+
+bool can_to_test_signed_str(const can_frame_t* frame, char out[TEST_SIGNED_STR_LEN]) {
+	return test_signed_to_str(can_to_test_signed(frame), out);
+}
+

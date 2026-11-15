@@ -20,5 +20,6 @@ can_frame_t test_u64_to_can(const test_u64_t* msg);
 test_u64_t can_to_test_u64(const can_frame_t* frame);
 void print_test_u64(test_u64_t msg);
 bool test_u64_to_str(test_u64_t msg, char out[TEST_U64_STR_LEN]);
+bool can_to_test_u64_str(const can_frame_t* frame, char out[TEST_U64_STR_LEN]);
 
 #endif

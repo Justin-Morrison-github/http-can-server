@@ -199,7 +199,9 @@ int generate_header(const message_t* msg) {
     fprintf(fp, "can_frame_t %s_to_can(const %s* msg);\n", snake_case_name, struct_t_name);
     fprintf(fp, "%s can_to_%s(const can_frame_t* frame);\n", struct_t_name, snake_case_name);
     fprintf(fp, "void print_%s(%s msg);\n", snake_case_name, struct_t_name);
-    fprintf(fp, "bool %s_to_str(%s msg, char out[%s_STR_LEN]);\n\n", snake_case_name, struct_t_name, upper_case_name);
+    fprintf(fp, "bool %s_to_str(%s msg, char out[%s_STR_LEN]);\n", snake_case_name, struct_t_name, upper_case_name);
+    fprintf(fp, "bool can_to_%s_str(const can_frame_t* frame, char out[%s_STR_LEN]);\n\n", snake_case_name, upper_case_name);
+
 
     fputs("#endif\n", fp);
     return 0;
@@ -355,7 +357,13 @@ void str_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_cas
     }
     fputs(");\n", fp);
     fputs("\treturn written == strlen(out);\n", fp);
-    fputs("}\n", fp);
+    fputs("}\n\n", fp);
+}
+
+void can_to_str_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) { 
+    fprintf(fp, "bool can_to_%s_str(const can_frame_t* frame, char out[%s_STR_LEN]) {\n", snake_case_name, upper_case_name);
+    fprintf(fp, "\treturn %s_to_str(can_to_%s(frame), out);\n", snake_case_name, snake_case_name);
+    fputs("}\n\n", fp);
 }
 
 int generate_source(const message_t* msg) { 
@@ -400,6 +408,8 @@ int generate_source(const message_t* msg) {
     print_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
 
     str_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
+
+    can_to_str_fn(fp, msg, struct_t_name, snake_case_name, upper_case_name);
 
     return 0;
 }

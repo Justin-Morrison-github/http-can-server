@@ -160,10 +160,8 @@ int main(void) {
                 can_request.method = CAN_GET;
 
                 can_message_t latest = contexts[can_request.can_id].msg;
-                test_u64_t test_u64 = can_to_test_u64(&latest.frame);
-                test_u64_to_str(test_u64, test_u64_str);
-                LOG_INFO(logger, "TestUnsigned[%ld]: %s", latest.rx_count, test_u64_str);
-                LOG_INFO(logger, "Count %ld : %lld.%09ld", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
+                can_to_test_u64_str(&in_frame, test_u64_str);
+                LOG_INFO(logger, "TestUnsigned[%lld.%09ld] #%ld: %s", (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec,  latest.rx_count, test_u64_str);
             }
         }
     }
