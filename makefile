@@ -6,10 +6,10 @@ client:
 	gcc ./src/http/client.c ./src/http/http.c -o ./build/http/client &&  ./build/http/client
 
 send_can:
-	gcc ./src/can/send_can.c ./src/can/utils.c ./src/can/msg/power_status/power_status.c ./src/logger/logger.c -o ./build/can/send_can && ./build/can/send_can
+	gcc ./src/can/send_can.c ./src/can/utils.c ./src/can/msg/test_u64/test_u64.c ./src/logger/logger.c -o ./build/can/send_can && ./build/can/send_can
 
 read_can:
-	gcc ./src/can/read_can.c ./src/can/utils.c ./src/can/msg/power_status/power_status.c -o ./build/can/read_can && ./build/can/read_can
+	gcc ./src/can/read_can.c ./src/can/utils.c ./src/can/msg/test_u64/test_u64.c -o ./build/can/read_can && ./build/can/read_can
 
 codec:
 	gcc -g -O0 ./src/can/codec/*.c -lm -o ./build/can/codec/codec && ./build/can/codec/codec
@@ -18,4 +18,4 @@ test_can:
 	gcc -g ./src/can/test_can.c  ./src/can/utils.c -o ./build/can/test_can && ./build/can/test_can
 
 bridge:
-	gcc ./src/bridge/bridge.c ./src/can/utils.c ./src/http/http.c ./src/can/msg/power_status/power_status.c -o ./build/bridge/bridge && ./build/bridge/bridge
+	gcc ./src/bridge/bridge.c ./src/can/utils.c ./src/http/http.c ./src/can/msg/test_u64/test_u64.c -o ./build/bridge/bridge && ./build/bridge/bridge

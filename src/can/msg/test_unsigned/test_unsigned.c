@@ -1,4 +1,6 @@
 #include "test_unsigned.h"
+#include <string.h>
+#include <stdio.h>
 #include <stddef.h>
 
 can_frame_t test_unsigned_to_can(const test_unsigned_t* msg) {
@@ -31,7 +33,7 @@ test_unsigned_t can_to_test_unsigned(const can_frame_t* frame) {
 		return test_unsigned;
 	}
 
-	uint8_t* data = frame->data;
+	const uint8_t* data = frame->data;
 	test_unsigned.flag = ((data[0] >> 7) & 0x01);
 	test_unsigned.u8 = ((uint64_t)(data[0] & 0x7F) << 1) | ((data[1] >> 7) & 0x01);
 	test_unsigned.u16 = ((uint64_t)(data[1] & 0x7F) << 9) | ((uint64_t)(data[2] & 0xFF) << 1) | ((data[3] >> 7) & 0x01);
@@ -44,6 +46,6 @@ void print_test_unsigned(test_unsigned_t msg) {
 }
 
 bool test_unsigned_to_str(test_unsigned_t msg, char out[TEST_UNSIGNED_STR_LEN]) {
-	int written = snprintf(out, "TEST_UNSIGNED: {flag: %s, u8: %u, u16: %u, u32: %u}", str_bool(msg.flag), msg.u8, msg.u16, msg.u32);
+	int written = snprintf(out, TEST_UNSIGNED_STR_LEN, "TEST_UNSIGNED: {flag: %s, u8: %u, u16: %u, u32: %u}", str_bool(msg.flag), msg.u8, msg.u16, msg.u32);
 	return written == strlen(out);
 }

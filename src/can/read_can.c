@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "utils.h"
-#include "msg/power_status/power_status.h"
+#include "msg/test_u64/test_u64.h"
 
 int main(void) {
     int can_sock_fd = open_can_socket("vcan0");
@@ -29,19 +29,17 @@ int main(void) {
             exit(1);
         }
         
-        if (frame_in.can_id == POWER_STATUS_ID) {
+        if (frame_in.can_id == TEST_U64_ID) {
             printf("Recived: 0x%03X\n", frame_in.can_id);
 
-            power_status_t power_status = can_to_power_status(&frame_in);
-            if (!power_status.valid) {
-                printf("error decoding power_status\n");
+            test_u64_t test_u64 = can_to_test_u64(&frame_in);
+            if (!test_u64.valid) {
+                printf("error decoding test_u64\n");
                 exit(1);
             }
 
-            print_power_status(power_status);
-            
-            can_ack_t power_status_ack = create_ack(POWER_STATUS_ID, ACK_ERR);
-            can_frame_t frame = ack_to_can(power_status_ack);
+            can_ack_t test_u64_ack = create_ack(TEST_U64_ID, ACK_ERR);
+            can_frame_t frame = ack_to_can(test_u64_ack);
 
             SockResult_t result = write_to_socket(can_sock_fd, &frame);
             if (result != SOCK_OK) {

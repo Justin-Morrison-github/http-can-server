@@ -1,4 +1,6 @@
 #include "test_i64.h"
+#include <string.h>
+#include <stdio.h>
 #include <stddef.h>
 
 can_frame_t test_i64_to_can(const test_i64_t* msg) {
@@ -28,7 +30,7 @@ test_i64_t can_to_test_i64(const can_frame_t* frame) {
 		return test_i64;
 	}
 
-	uint8_t* data = frame->data;
+	const uint8_t* data = frame->data;
 	test_i64.i64 = ((uint64_t)(data[0] & 0xFF) << 56) | ((uint64_t)(data[1] & 0xFF) << 48) | ((uint64_t)(data[2] & 0xFF) << 40) | ((uint64_t)(data[3] & 0xFF) << 32) | ((uint64_t)(data[4] & 0xFF) << 24) | ((uint64_t)(data[5] & 0xFF) << 16) | ((uint64_t)(data[6] & 0xFF) << 8) | (data[7] & 0xFF);
 	test_i64.valid = true;
 	return test_i64;
@@ -38,6 +40,6 @@ void print_test_i64(test_i64_t msg) {
 }
 
 bool test_i64_to_str(test_i64_t msg, char out[TEST_I64_STR_LEN]) {
-	int written = snprintf(out, "TEST_I64: {i64: %ld}", msg.i64);
+	int written = snprintf(out, TEST_I64_STR_LEN, "TEST_I64: {i64: %ld}", msg.i64);
 	return written == strlen(out);
 }

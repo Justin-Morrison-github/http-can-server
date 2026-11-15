@@ -1,4 +1,6 @@
 #include "test_u64.h"
+#include <string.h>
+#include <stdio.h>
 #include <stddef.h>
 
 can_frame_t test_u64_to_can(const test_u64_t* msg) {
@@ -28,7 +30,7 @@ test_u64_t can_to_test_u64(const can_frame_t* frame) {
 		return test_u64;
 	}
 
-	uint8_t* data = frame->data;
+	const uint8_t* data = frame->data;
 	test_u64.u64 = ((uint64_t)(data[0] & 0xFF) << 56) | ((uint64_t)(data[1] & 0xFF) << 48) | ((uint64_t)(data[2] & 0xFF) << 40) | ((uint64_t)(data[3] & 0xFF) << 32) | ((uint64_t)(data[4] & 0xFF) << 24) | ((uint64_t)(data[5] & 0xFF) << 16) | ((uint64_t)(data[6] & 0xFF) << 8) | (data[7] & 0xFF);
 	test_u64.valid = true;
 	return test_u64;
@@ -38,6 +40,6 @@ void print_test_u64(test_u64_t msg) {
 }
 
 bool test_u64_to_str(test_u64_t msg, char out[TEST_U64_STR_LEN]) {
-	int written = snprintf(out, "TEST_U64: {u64: %lu}", msg.u64);
+	int written = snprintf(out, TEST_U64_STR_LEN, "TEST_U64: {u64: %lu}", msg.u64);
 	return written == strlen(out);
 }

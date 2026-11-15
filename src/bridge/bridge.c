@@ -14,7 +14,7 @@
 
 #include "../can/utils.h"
 #include "../http/http.h"
-#include "../can/msg/power_status/power_status.h"
+#include "../can/msg/test_u64/test_u64.h"
 
 #define NUM_SOCKETS 2
 #define CAN_SOCKET 0
@@ -125,16 +125,14 @@ int main(void) {
             }  else {
                 printf("New Client\n");
                 // Parse HTTP request
-                // Lets assume a client requested the telemetry of POWER_STATUS (0x444)
+                // Lets assume a client requested the telemetry of TEST_U64 (0x444)
                 HttpCANRequest_t can_request;
-                can_request.can_id = POWER_STATUS_ID;
+                can_request.can_id = TEST_U64_ID;
                 can_request.method = CAN_GET;
 
                 can_message_t latest = messages[can_request.can_id];
-                power_status_t power_status = can_to_power_status(&latest.frame);
+                test_u64_t test_u64 = can_to_test_u64(&latest.frame);
                 printf("Count %ld : %lld.%09ld\n", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
-                print_power_status(power_status);
-
             }
         }
     }
@@ -151,19 +149,17 @@ int main(void) {
     //         exit(1);
     //     }
         
-    //     if (frame_in.can_id == POWER_STATUS_ID) {
+    //     if (frame_in.can_id == TEST_U64_ID) {
     //         printf("Recived: 0x%03X\n", frame_in.can_id);
 
-    //         power_status_t power_status = can_to_power_status(&frame_in);
-    //         if (!power_status.valid) {
-    //             printf("error decoding power_status\n");
+    //         test_u64_t test_u64 = can_to_test_u64(&frame_in);
+    //         if (!test_u64.valid) {
+    //             printf("error decoding test_u64\n");
     //             exit(1);
     //         }
 
-    //         print_power_status(power_status);
-            
-    //         can_ack_t power_status_ack = create_ack(POWER_STATUS_ID, ACK_OK);
-    //         can_frame_t frame = ack_to_can(power_status_ack);
+    //         can_ack_t test_u64_ack = create_ack(TEST_U64_ID, ACK_OK);
+    //         can_frame_t frame = ack_to_can(test_u64_ack);
 
     //         SockResult_t result = write_to_socket(can_sock_fd, &frame);
     //         if (result != SOCK_OK) {

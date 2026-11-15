@@ -14,7 +14,7 @@
         {
             "label": "Build send_can for debugging",
             "type": "shell",
-            "command": "mkdir -p debug/can/send_can && gcc -g -O0 -fno-omit-frame-pointer -Wall -Wextra src/can/send_can.c src/can/utils.c src/can/msg/power_status/power_status.c src/logger/logger.c -o debug/can/send_can/send_can",
+            "command": "mkdir -p debug/can/send_can && gcc -g -O0 -fno-omit-frame-pointer -Wall -Wextra src/can/send_can.c src/can/utils.c src/can/msg/test_u64/test_u64.c src/logger/logger.c -o debug/can/send_can/send_can",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

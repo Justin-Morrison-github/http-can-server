@@ -11,7 +11,7 @@
 #include <time.h>
 
 #include "utils.h"
-#include "msg/power_status/power_status.h"
+#include "msg/test_u64/test_u64.h"
 #include "../logger/logger.h"
 
 
@@ -30,28 +30,26 @@ int main(void) {
         exit(1);
     }
     
-    // Make a power_status_t
-    power_status_t power_status;
-    power_status.percent_charge = 0;
-    power_status.status = 3;
-    power_status.power_on = true;
-    power_status.valid = true;
-    char power_status_str[POWER_STATUS_STR_LEN]; // Buffer to format string into, only allocate once
+    // Make a test_u64_t
+    test_u64_t test_u64;
+    test_u64.u64 = 0;
+    test_u64.valid = true;
+    char test_u64_str[TEST_U64_STR_LEN]; // Buffer to format string into, only allocate once
 
-    if(!power_status_to_str(power_status, power_status_str)) {
-        LOG_ERR(&logger, "power_status_to_str failed");
+    if(!test_u64_to_str(test_u64, test_u64_str)) {
+        LOG_ERR(&logger, "test_u64_to_str failed");
     } else {
-        LOG_INFO(&logger, "%s", power_status_str);
+        LOG_INFO(&logger, "%s", test_u64_str);
     }
 
-    can_frame_t frame = power_status_to_can(&power_status);
+    can_frame_t frame = test_u64_to_can(&test_u64);
     LOG_INFO(&logger, "Data to send: [0x%02X, 0x%02X]", frame.data[0], frame.data[1]);
     uint64_t last_send_time = 0;
 
     while (1) {
         uint64_t now = millis();
-        if (now - last_send_time >= POWER_STATUS_INTERVAL_MS) {
-            can_frame_t frame = power_status_to_can(&power_status);
+        if (now - last_send_time >= TEST_U64_INTERVAL_MS) {
+            can_frame_t frame = test_u64_to_can(&test_u64);
 
             SockResult_t result = write_to_socket(can_sock_fd, &frame);
             if (result != SOCK_OK) {
@@ -61,8 +59,7 @@ int main(void) {
             LOG_INFO(&logger, "Sent");
 
             last_send_time = now;
-            power_status.percent_charge++;
-            // print_power_status(power_status);
+            test_u64.u64++;
 
             // bool ack_received = false;
             // can_frame_t ack_frame; 

@@ -1,4 +1,6 @@
 #include "test_signed.h"
+#include <string.h>
+#include <stdio.h>
 #include <stddef.h>
 
 can_frame_t test_signed_to_can(const test_signed_t* msg) {
@@ -31,7 +33,7 @@ test_signed_t can_to_test_signed(const can_frame_t* frame) {
 		return test_signed;
 	}
 
-	uint8_t* data = frame->data;
+	const uint8_t* data = frame->data;
 	test_signed.flag = ((data[0] >> 7) & 0x01);
 	test_signed.i8 = ((uint64_t)(data[0] & 0x7F) << 1) | ((data[1] >> 7) & 0x01);
 	test_signed.i16 = ((uint64_t)(data[1] & 0x7F) << 9) | ((uint64_t)(data[2] & 0xFF) << 1) | ((data[3] >> 7) & 0x01);
@@ -44,6 +46,6 @@ void print_test_signed(test_signed_t msg) {
 }
 
 bool test_signed_to_str(test_signed_t msg, char out[TEST_SIGNED_STR_LEN]) {
-	int written = snprintf(out, "TEST_SIGNED: {flag: %s, i8: %d, i16: %d, i32: %d}", str_bool(msg.flag), msg.i8, msg.i16, msg.i32);
+	int written = snprintf(out, TEST_SIGNED_STR_LEN, "TEST_SIGNED: {flag: %s, i8: %d, i16: %d, i32: %d}", str_bool(msg.flag), msg.i8, msg.i16, msg.i32);
 	return written == strlen(out);
 }
