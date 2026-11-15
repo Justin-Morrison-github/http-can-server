@@ -99,6 +99,10 @@ static void vlog(logger_t* logger, const char* level, const char* format, va_lis
 
 
 void _log(logger_t* logger, const char* level, const char* file, int line, bool extra, const char* format, ...) {
+    if (logger == NULL || level == NULL || file == NULL || format == NULL) {
+        return;
+    }
+    
     va_list args;
     va_start(args, format);
     if (extra) {
