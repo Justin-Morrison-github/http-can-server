@@ -44,3 +44,9 @@ void print_power_status(power_status_t status) {
     printf("  status: %d\n", status.status);
     printf("  power_on: %s\n", str_bool(status.power_on));
 }
+
+bool power_status_to_str(power_status_t status, char out[POWER_STATUS_STR_LEN]){
+    int written = snprintf(out, POWER_STATUS_STR_LEN, "%s: {percent_charge: %d, status: %d, power_on: %s}", POWER_STATUS_NAME, status.percent_charge, status.status, str_bool(status.power_on));
+    printf("%s\n", out);
+    return written == strlen(out);
+}

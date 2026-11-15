@@ -36,7 +36,13 @@ int main(void) {
     power_status.status = 3;
     power_status.power_on = true;
     power_status.valid = true;
-    // print_power_status(power_status);
+    char power_status_str[POWER_STATUS_STR_LEN]; // Buffer to format string into, only allocate once
+
+    if(!power_status_to_str(power_status, power_status_str)) {
+        LOG_ERR(&logger, "power_status_to_str failed");
+    } else {
+        LOG_INFO(&logger, "%s", power_status_str);
+    }
 
     can_frame_t frame = power_status_to_can(&power_status);
     LOG_INFO(&logger, "Data to send: [0x%02X, 0x%02X]", frame.data[0], frame.data[1]);

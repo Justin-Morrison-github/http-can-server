@@ -9,6 +9,7 @@
 #define POWER_STATUS_DLC 2
 #define POWER_STATUS_INTERVAL_MS 1000
 #define POWER_STATUS_NAME "PowerStatus"
+#define POWER_STATUS_STR_LEN 100
 
 typedef struct power_status {
     uint8_t percent_charge; // Only uses 7 bits
@@ -19,4 +20,5 @@ typedef struct power_status {
 can_frame_t power_status_to_can(const power_status_t* status);
 power_status_t can_to_power_status(const can_frame_t* frame);
 void print_power_status(power_status_t status);
+bool power_status_to_str(power_status_t status, char out[POWER_STATUS_STR_LEN]);
 #endif
