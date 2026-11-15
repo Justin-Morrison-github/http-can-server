@@ -51,23 +51,23 @@ bool add_rx_can_msg(can_frame_t frame) {
 }
 
 int main(void) {
-    log_context_t logger = create_logger("bridge", E_BOTH);
-    if (logger.index == SIZE_MAX) {
-        LOG_ERR(&logger, "Error creating logger\n");
+    logger_t* logger = create_logger("bridge", E_BOTH);
+    if (logger == NULL) {
+        LOG_ERR(logger, "Error creating logger\n");
         exit(1);
     }
     
 
     int can_sock_fd = open_can_socket("vcan0");
     if (can_sock_fd < 0) {
-        LOG_ERR(&logger, "CAN socket fd is invalid\n");
+        LOG_ERR(logger, "CAN socket fd is invalid\n");
         return 1;
     }
 
     int http_sock_fd = connect_server();
     if (http_sock_fd < 0)
     {
-        LOG_ERR(&logger, "HTTP socket fd is invalid\n");
+        LOG_ERR(logger, "HTTP socket fd is invalid\n");
         return 1;
     }
 
@@ -76,7 +76,7 @@ int main(void) {
         exit(1);
     }
 
-    LOG_INFO(&logger, "Server listening...\n");
+    LOG_INFO(logger, "Server listening...\n");
     
 
     struct pollfd fds[NUM_SOCKETS];
@@ -96,23 +96,23 @@ int main(void) {
         }
 
         if (fds[CAN_SOCKET].revents & POLLERR) {
-            LOG_ERR(&logger, "CAN socket error: POLLERR\n");
+            LOG_ERR(logger, "CAN socket error: POLLERR\n");
         }
 
         if (fds[HTTP_SOCKET].revents & POLLERR) {
-            LOG_ERR(&logger, "HTTP socket error: POLLERR\n");
+            LOG_ERR(logger, "HTTP socket error: POLLERR\n");
         }
         
         if (fds[CAN_SOCKET].revents & POLLIN) {
             SockResult_t result = read_from_socket(can_sock_fd, &in_frame);
             if (result != SOCK_OK) {
-                LOG_ERR(&logger, "read_from_socket failed: %s", sock_result_str(result));
+                LOG_ERR(logger, "read_from_socket failed: %s", sock_result_str(result));
                 exit(1);
             } else {
-                // LOG_INFO(&logger, "CAN frame recieved\n");
+                // LOG_INFO(logger, "CAN frame recieved\n");
                 
                 if (in_frame.can_id & CAN_EFF_FLAG) { // Only handle standard (11-bit ID) frames for now
-                    LOG_INFO(&logger, "Error: extended frame\n");
+                    LOG_INFO(logger, "Error: extended frame\n");
                 } else {
                     add_rx_can_msg(in_frame);
                 }
@@ -122,10 +122,10 @@ int main(void) {
         if (fds[HTTP_SOCKET].revents & POLLIN) {
             int accept_fd = accept(http_sock_fd, NULL, NULL);
             if (accept_fd < 0) {
-                LOG_ERR(&logger, "accept failed");
+                LOG_ERR(logger, "accept failed");
                 break;
             }  else {
-                LOG_INFO(&logger, "New Client\n");
+                LOG_INFO(logger, "New Client\n");
                 // Parse HTTP request
                 // Lets assume a client requested the telemetry of TEST_U64 (0x444)
                 HttpCANRequest_t can_request;
@@ -134,7 +134,7 @@ int main(void) {
 
                 can_message_t latest = messages[can_request.can_id];
                 test_u64_t test_u64 = can_to_test_u64(&latest.frame);
-                LOG_INFO(&logger, "Count %ld : %lld.%09ld\n", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
+                LOG_INFO(logger, "Count %ld : %lld.%09ld\n", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
             }
         }
     }
@@ -147,16 +147,16 @@ int main(void) {
     // {
     //     SockResult_t result = read_from_socket(can_sock_fd, &frame_in);
     //     if (result != SOCK_OK) {
-    //         LOG_ERR(&logger, "read_from_socket failed: %s", sock_result_str(result));
+    //         LOG_ERR(logger, "read_from_socket failed: %s", sock_result_str(result));
     //         exit(1);
     //     }
         
     //     if (frame_in.can_id == TEST_U64_ID) {
-    //         LOG_INFO(&logger, "Recived: 0x%03X\n", frame_in.can_id);
+    //         LOG_INFO(logger, "Recived: 0x%03X\n", frame_in.can_id);
 
     //         test_u64_t test_u64 = can_to_test_u64(&frame_in);
     //         if (!test_u64.valid) {
-    //             LOG_INFO(&logger, "error decoding test_u64\n");
+    //             LOG_INFO(logger, "error decoding test_u64\n");
     //             exit(1);
     //         }
 
@@ -165,7 +165,7 @@ int main(void) {
 
     //         SockResult_t result = write_to_socket(can_sock_fd, &frame);
     //         if (result != SOCK_OK) {
-    //             LOG_ERR(&logger, "write_to_socket failed: %s", sock_result_str(result));
+    //             LOG_ERR(logger, "write_to_socket failed: %s", sock_result_str(result));
     //             exit(1);
     //         }
     //     }
