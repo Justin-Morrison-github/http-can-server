@@ -219,7 +219,7 @@ void can_to_msg_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* sn
     fprintf(fp, "\t\treturn %s;\n", snake_case_name);
     fputs("\t}\n\n", fp);
     
-    fprintf(fp, "\tuint8_t* data = frame->data;\n");
+    fprintf(fp, "\tconst uint8_t* data = frame->data;\n");
 
     int bit_offset = 0;
     for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
@@ -330,12 +330,9 @@ void print_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_c
 }
 
 void str_fn(FILE* fp, const message_t* msg, char* struct_t_name, char* snake_case_name, char* upper_case_name) {
-    // int written = snprintf(out, POWER_STATUS_STR_LEN, "%s: {percent_charge: %d, status: %d, power_on: %s}", POWER_STATUS_NAME, status.percent_charge, status.status, str_bool(status.power_on));
-    // printf("%s\n", out);
-    // return written == strlen(out);
     fprintf(fp, "bool %s_to_str(%s msg, char out[%s_STR_LEN]) {\n", snake_case_name, struct_t_name, upper_case_name);
 
-    fprintf(fp, "\tint written = snprintf(out, \"%s: {", upper_case_name);
+    fprintf(fp, "\tint written = snprintf(out, %s_STR_LEN, \"%s: {", upper_case_name, upper_case_name);
     for (signal_t* signal = msg->signals->next; signal != NULL; signal = signal->next) {
         Type_t type = type_from_num_bits_and_sign(signal->num_bits, signal->sign);
         if (signal->next == NULL) {
@@ -389,6 +386,8 @@ int generate_source(const message_t* msg) {
     to_upper_str(snake_case_name, upper_case_name);
     
     fprintf(fp, "#include \"%s.h\"\n", snake_case_name);
+    fputs("#include <string.h>\n", fp);
+    fputs("#include <stdio.h>\n", fp);
     fputs("#include <stddef.h>\n\n", fp);
 
     char struct_t_name[110];
