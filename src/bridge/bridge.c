@@ -94,6 +94,7 @@ int main(void) {
     }
 
     LOG_INFO(logger, "Server listening...");
+    char test_u64_str[TEST_U64_STR_LEN];
     
 
     struct pollfd fds[NUM_SOCKETS];
@@ -132,6 +133,15 @@ int main(void) {
                     LOG_INFO(logger, "Error: extended frame");
                 } else {
                     add_rx_can_msg(in_frame);
+                        switch (in_frame.can_id) {
+                            case TEST_U64_ID:
+                                test_u64_t test_u64 = can_to_test_u64(&in_frame);
+                                test_u64_to_str(test_u64, test_u64_str);
+                                LOG_INFO(logger, "RECV: %s", test_u64_str);
+                                break;
+                            default:
+                                break;
+                        }
                 }
             }
         }
@@ -151,6 +161,8 @@ int main(void) {
 
                 can_message_t latest = contexts[can_request.can_id].msg;
                 test_u64_t test_u64 = can_to_test_u64(&latest.frame);
+                test_u64_to_str(test_u64, test_u64_str);
+                LOG_INFO(logger, "TestUnsigned[%ld]: %s", latest.rx_count, test_u64_str);
                 LOG_INFO(logger, "Count %ld : %lld.%09ld", latest.rx_count, (long long)latest.last_seen.tv_sec, (long)latest.last_seen.tv_nsec);
             }
         }
