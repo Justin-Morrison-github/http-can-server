@@ -1,24 +1,20 @@
 <MESSAGES
-	<MESSAGE: MotorControlStatus 0x010 @10
-		speed_ms:           16 | -
-		charge_percent:     8  | +
-	MESSAGE>
-	<MESSAGE: TemperatureSensor 0x0FF @100
-		time_ms:    		64 | +
-		temp_c:        		8 | -
-	MESSAGE>
-	<MESSAGE: MotorErrorFlags 0x403 @1000
-		over_voltage:    	1 | +
-		over_current:    	1 | +
-		under_voltage:    	1 | +
-		under_current:    	1 | +
-		overheating:    	1 | -
-	MESSAGE>
-	<MESSAGE: Test 0xFFF @0
-		bool1:    		1 | +
-		bool2:    		1 | -
+	<MESSAGE: TestUnsigned 0x123 @0
+		flag:    		1 | +
 		u8:        		8 | +
 		u16:        	16 | +
 		u32:        	32 | +
+	MESSAGE>
+	<MESSAGE: TestSigned 0x456 @0
+		flag:    		1 | -
+		i8:       		8 | -
+		i16:        	16 | -
+		i32:        	32 | -
+	MESSAGE>
+	<MESSAGE: TestU64 0x064 @0
+		u64:        	64 | +
+	MESSAGE>
+	<MESSAGE: TestI64 0x640 @0
+		i64:        	64 | -
 	MESSAGE>
 MESSAGES>
