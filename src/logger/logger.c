@@ -90,18 +90,18 @@ static void vlog(log_context_t* ctx, const char* level, const char* format, va_l
     logger_t logger = g_loggers[ctx->index];
 
     if (logger.enables & E_STDOUT) {
+        va_list copy; // need a copy because vfprintf consumes list 
+        va_copy(copy, args);
         fprintf(stdout, "[%s] ", level);
-        vfprintf(stdout, format, args);
+        vfprintf(stdout, format, copy);
         fprintf(stdout, "\n");
+        va_end(copy);
     }
     
     if (logger.enables & E_LOG) {
-        va_list copy; // STDOUT path consumes va_list, need a copy 
-        va_copy(copy, args);
         fprintf(logger.fp, "[%s] ", level);
-        vfprintf(logger.fp, format, copy);
+        vfprintf(logger.fp, format, args);
         fprintf(logger.fp, "\n");
-        va_end(copy);
     }
 }
 
