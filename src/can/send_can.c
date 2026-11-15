@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -36,14 +35,6 @@ int main(void) {
     test_u64.valid = true;
     char test_u64_str[TEST_U64_STR_LEN]; // Buffer to format string into, only allocate once
 
-    if(!test_u64_to_str(test_u64, test_u64_str)) {
-        LOG_ERR(&logger, "test_u64_to_str failed");
-    } else {
-        LOG_INFO(&logger, "%s", test_u64_str);
-    }
-
-    can_frame_t frame = test_u64_to_can(&test_u64);
-    LOG_INFO(&logger, "Data to send: [0x%02X, 0x%02X]", frame.data[0], frame.data[1]);
     uint64_t last_send_time = 0;
 
     while (1) {
@@ -53,10 +44,15 @@ int main(void) {
 
             SockResult_t result = write_to_socket(can_sock_fd, &frame);
             if (result != SOCK_OK) {
-                fprintf(stderr, "write_to_socket failed: %s", sock_result_str(result));
+                LOG_ERR(&logger, "write_to_socket failed: %s", sock_result_str(result));
                 exit(1);
             }
-            LOG_INFO(&logger, "Sent");
+            
+            if(!test_u64_to_str(test_u64, test_u64_str)) {
+                LOG_ERR(&logger, "test_u64_to_str failed");
+            } else {
+                LOG_INFO(&logger, "Sent: %s", test_u64_str);
+            }
 
             last_send_time = now;
             test_u64.u64++;
@@ -66,13 +62,13 @@ int main(void) {
             // while (!ack_received) {
             //     SockResult_t result = read_from_socket(can_sock_fd, &ack_frame);
             //     if (result != SOCK_OK) {
-            //         fprintf(stderr, "read_from_socket failed: %s", sock_result_str(result));
+            //         LOG_ERR(&logger, "read_from_socket failed: %s", sock_result_str(result));
             //         exit(1);
             //     }
 
             //     if (ack_frame.can_id == CAN_ACK_ID) {
             //         can_ack_t can_ack = can_to_ack(ack_frame);
-            //         printf("Received ACK: 0x%03X\n", can_ack.can_id);
+            //         LOG_INFO(&logger, "Received ACK: 0x%03X\n", can_ack.can_id);
             //         ack_received = true;
             //     }
             // }

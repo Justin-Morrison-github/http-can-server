@@ -20,7 +20,6 @@ int open_can_socket(char *can_interface)
         close(can_sock_fd);
         return -1;
     }
-    printf("CAN socket opened succesfully\n");
 
     struct ifreq ifr;
     strcpy(ifr.ifr_name, can_interface);
@@ -43,7 +42,7 @@ int open_can_socket(char *can_interface)
         close(can_sock_fd);
         return -1;
     }
-    printf("CAN socket bound to %s\n", can_interface);
+
     return can_sock_fd;
 }
 char* sock_result_str(SockResult_t result) {
@@ -77,8 +76,6 @@ SockResult_t write_to_socket(int fd, can_frame_t* frame) {
         return SOCK_WRITE_FAIL;
     }
     
-    printf("Sent 0x%03X: %u bytes\n", frame->can_id, frame->len);
-
     return SOCK_OK;
 }
 
