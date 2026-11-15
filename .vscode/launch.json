@@ -8,10 +8,19 @@
             "name": "Debug codec",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build/can/codec/codec",
+            "program": "${workspaceRoot}/debug/can/codec/codec",
             "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build codec for debugging"
+        },
+        {
+            "name": "Debug send_can",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/debug/can/send_can/send_can",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build send_can for debugging"
         }
     ]
 }

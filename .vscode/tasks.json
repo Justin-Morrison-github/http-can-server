@@ -4,10 +4,21 @@
         {
             "label": "Build codec for debugging",
             "type": "shell",
-            "command": "mkdir -p \"${workspaceFolder}/build/can/codec\" && gcc -g -O0 -fno-omit-frame-pointer \"${workspaceFolder}/src/can/codec/codec.c\" -o \"${workspaceFolder}/build/can/codec/codec\"",
+            "command": "mkdir -p debug/can/codec && gcc -g -O0 -fno-omit-frame-pointer -Wall -Wextra src/can/codec/*.c -lm -o debug/can/codec/codec",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build send_can for debugging",
+            "type": "shell",
+            "command": "mkdir -p debug/can/send_can && gcc -g -O0 -fno-omit-frame-pointer -Wall -Wextra src/can/send_can.c src/can/utils.c src/can/msg/power_status/power_status.c src/logger/logger.c -o debug/can/send_can/send_can",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
             "problemMatcher": "$gcc"
         }
     ]
