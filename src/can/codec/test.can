@@ -17,4 +17,9 @@
 	<MESSAGE: TestI64 0x640 @1000
 		i64:        	64 | -
 	MESSAGE>
+	<MESSAGE: CpuInfo 0x555 @1000
+		cpu_temp_mC:		16 | +	
+		cpu_load_pct_x10:   10 | +
+		cpu_num_cores:		6  | +  
+	MESSAGE>
 MESSAGES>

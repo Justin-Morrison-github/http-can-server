@@ -19,3 +19,11 @@ test_can:
 
 bridge:
 	gcc ./src/bridge/bridge.c ./src/can/utils.c ./src/http/http.c ./src/can/msg/test_u64/test_u64.c ./src/logger/logger.c -o ./build/bridge/bridge && ./build/bridge/bridge
+
+cpu:
+	mkdir -p build/nodes/cpu
+	gcc src/nodes/cpu/cpu.c src/can/utils.c src/can/msg/cpu_info/cpu_info.c src/logger/logger.c -o build/nodes/cpu/cpu && build/nodes/cpu/cpu
+
+can_logger:
+	mkdir -p build/nodes/can_logger
+	gcc src/nodes/can_logger/can_logger.c src/can/utils.c src/logger/logger.c -o build/nodes/can_logger/can_logger && build/nodes/can_logger/can_logger

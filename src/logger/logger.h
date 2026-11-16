@@ -31,6 +31,7 @@ typedef struct logger {
 logger_t* create_logger(char* name, int enables);
 void free_logger(logger_t* logger);
 
+#define LOG(logger, ...) _log_no_level(logger, __FILE__, __LINE__, false, __VA_ARGS__) 
 #define LOG_INFO(logger, ...) _log(logger, "INFO", __FILE__, __LINE__, false, __VA_ARGS__) 
 #define LOG_WARN(logger, ...) _log(logger, "WARN", __FILE__, __LINE__, false, __VA_ARGS__)
 #define LOG_ERR(logger, ...) _log(logger, "ERROR", __FILE__, __LINE__, false, __VA_ARGS__)
@@ -42,5 +43,6 @@ void free_logger(logger_t* logger);
 static void vlog_extra(logger_t* logger, const char* level, const char* file, int line, const char* format, va_list args);
 static void vlog(logger_t* logger, const char* level, const char* format, va_list args);
 void _log(logger_t* logger, const char* level, const char* file, int line, bool extra, const char* format, ...);
+void _log_no_level(logger_t* logger, const char* file, int line, bool extra, const char* format, ...);
 
 #endif
