@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <string.h>
 
 logger_t* create_logger(char* name, int enables) {
     if (enables < 0 || enables > E_BOTH) {
@@ -97,6 +98,21 @@ static void vlog(logger_t* logger, const char* level, const char* format, va_lis
     }
 }
 
+static void vlog_no_level(logger_t* logger, const char* format, va_list args){
+    if (logger->enables & E_STDOUT) {
+        va_list copy; // need a copy because vfprintf consumes list 
+        va_copy(copy, args);
+        vfprintf(stdout, format, copy);
+        fprintf(stdout, "\n");
+        va_end(copy);
+    }
+    
+    if (logger->enables & E_LOG) {
+        vfprintf(logger->fp, format, args);
+        fprintf(logger->fp, "\n");
+    }
+}
+
 
 void _log(logger_t* logger, const char* level, const char* file, int line, bool extra, const char* format, ...) {
     if (logger == NULL || level == NULL || file == NULL || format == NULL) {
@@ -110,6 +126,18 @@ void _log(logger_t* logger, const char* level, const char* file, int line, bool 
     } else {
         vlog(logger, level, format, args);
     }
+    
+    va_end(args);
+}
+
+void _log_no_level(logger_t* logger, const char* file, int line, bool extra, const char* format, ...) {
+    if (logger == NULL || file == NULL || format == NULL) {
+        return;
+    }
+    
+    va_list args;
+    va_start(args, format);
+    vlog_no_level(logger, format, args);
     
     va_end(args);
 }
