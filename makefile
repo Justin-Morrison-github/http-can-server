@@ -27,3 +27,7 @@ cpu:
 can_logger:
 	mkdir -p build/nodes/can_logger
 	gcc src/nodes/can_logger/can_logger.c src/can/utils.c src/logger/logger.c -o build/nodes/can_logger/can_logger && build/nodes/can_logger/can_logger
+	
+clean:
+	rm -rf build/*
+	rm -rf logs/*
